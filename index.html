@@ -2,888 +2,1984 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>K-Tech Electronics — Tech Architecture</title>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Volta OS — K-Tech Electronics</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #080A0F;
-  --ink: #F2EDE6;
-  --ink2: #A8A098;
-  --ink3: #5A5450;
-  --ink4: #2E2C2A;
-  --amber: #E8A830;
-  --amber-dim: #E8A83014;
-  --cyan: #00C8E0;
-  --cyan-dim: #00C8E010;
-  --green: #22C55E;
-  --green-dim: #22C55E10;
-  --red: #EF4444;
-  --red-dim: #EF444410;
-  --blue: #3B82F6;
-  --blue-dim: #3B82F610;
-  --purple: #A855F7;
-  --purple-dim: #A855F710;
-  --surface: #0D1018;
-  --card: #111620;
-  --border: #1C2030;
-  --border2: #242B3A;
-  --serif: 'Instrument Serif', Georgia, serif;
-  --mono: 'JetBrains Mono', 'Courier New', monospace;
+  --bg:#07090E;--surface:#0D1017;--card:#111520;--card2:#151A25;--border:#1E2535;--border2:#232C3E;
+  --cyan:#00D4FF;--cyan-dim:#00D4FF18;--cyan-glow:#00D4FF40;
+  --green:#00E676;--green-dim:#00E67618;
+  --red:#FF4444;--red-dim:#FF444418;
+  --amber:#FFB300;--amber-dim:#FFB30018;
+  --purple:#A855F7;--purple-dim:#A855F718;
+  --blue:#3B82F6;--blue-dim:#3B82F618;
+  --text:#E8F0FE;--text2:#9AABC8;--text3:#556480;--text4:#2E3A50;
+  --mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif;
 }
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
-body { background: var(--bg); color: var(--ink); font-family: var(--serif); font-size: 16px; line-height: 1.7; }
-body::before {
-  content: '';
-  position: fixed; inset: 0;
-  background: radial-gradient(ellipse 70% 50% at 15% 5%, #E8A83008, transparent 55%),
-              radial-gradient(ellipse 50% 40% at 85% 95%, #00C8E006, transparent 50%);
-  pointer-events: none; z-index: 0;
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;height:100%}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 60% at 10% 0%,#00D4FF08 0%,transparent 60%),radial-gradient(ellipse 60% 40% at 90% 100%,#A855F708 0%,transparent 60%);pointer-events:none;z-index:0}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:var(--surface)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+
+/* ── NAV ── */
+nav{position:fixed;top:0;left:0;right:0;height:52px;background:#07090Ef0;backdrop-filter:blur(20px);border-bottom:1px solid var(--border);z-index:500;display:flex;align-items:center;padding:0 16px;gap:12px}
+.nav-logo{font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:3px;color:var(--cyan);text-transform:uppercase;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:8px}
+.nav-logo .bolt{width:22px;height:22px;background:var(--cyan);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:13px}
+.nav-tabs{display:flex;overflow-x:auto;scrollbar-width:none;flex:1;gap:2px}
+.nav-tabs::-webkit-scrollbar{display:none}
+.nav-tab{background:none;border:none;border-bottom:2px solid transparent;color:var(--text3);font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;padding:0 14px;height:52px;cursor:pointer;white-space:nowrap;transition:all .2s}
+.nav-tab:hover{color:var(--text2)}
+.nav-tab.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+.nav-actions{display:flex;gap:6px;margin-left:8px}
+
+/* ── MOBILE NAV ── */
+.mob-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:#07090Ef8;backdrop-filter:blur(24px);border-top:1px solid var(--border);z-index:500;padding-bottom:env(safe-area-inset-bottom)}
+.mob-inner{display:flex;height:58px}
+.mob-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;cursor:pointer;color:var(--text4);transition:color .2s;-webkit-tap-highlight-color:transparent}
+.mob-tab svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.mob-tab span{font-family:var(--mono);font-size:7px;letter-spacing:.5px;text-transform:uppercase}
+.mob-tab.active{color:var(--cyan)}
+.fab{display:none;position:fixed;bottom:70px;right:16px;width:50px;height:50px;background:var(--cyan);border:none;border-radius:50%;z-index:600;cursor:pointer;align-items:center;justify-content:center;box-shadow:0 0 20px var(--cyan-glow);-webkit-tap-highlight-color:transparent}
+.fab svg{width:22px;height:22px;stroke:#07090E;fill:none;stroke-width:2.5;stroke-linecap:round}
+
+/* ── LAYOUT ── */
+main{margin-top:52px;max-width:1200px;margin-left:auto;margin-right:auto;padding:24px 16px 90px;position:relative;z-index:1}
+.section{display:none;animation:fadeUp .2s ease}
+.section.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── TYPOGRAPHY ── */
+.eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--cyan);margin-bottom:5px}
+.page-title{font-size:clamp(22px,4vw,36px);font-weight:600;margin-bottom:24px;color:var(--text);letter-spacing:-.5px}
+
+/* ── CARDS ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:20px}
+.card2{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:16px}
+.card-title{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:14px}
+
+/* ── STAT BOXES ── */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-bottom:14px}
+.stat-box{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;position:relative;overflow:hidden;transition:border-color .2s}
+.stat-box:hover{border-color:var(--border2)}
+.stat-box::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.stat-box.cyan::before{background:var(--cyan)}
+.stat-box.green::before{background:var(--green)}
+.stat-box.red::before{background:var(--red)}
+.stat-box.amber::before{background:var(--amber)}
+.stat-box.purple::before{background:var(--purple)}
+.stat-box.blue::before{background:var(--blue)}
+.stat-label{font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:8px}
+.stat-value{font-family:var(--mono);font-size:18px;font-weight:700;line-height:1}
+.stat-sub{font-family:var(--mono);font-size:9px;color:var(--text3);margin-top:5px}
+
+/* ── ALERTS ── */
+.alert{border-radius:6px;padding:10px 14px;font-family:var(--mono);font-size:11px;margin-bottom:12px;line-height:1.7}
+.alert-ok{background:#001A08;border:1px solid #00E67640;color:#4EE890}
+.alert-warn{background:#1A1000;border:1px solid #FFB30040;color:#FFCC50}
+.alert-err{background:#1A0808;border:1px solid #FF444440;color:#FF7070}
+.alert-info{background:#001220;border:1px solid #00D4FF40;color:#60E0FF}
+
+/* ── BUTTONS ── */
+.btn{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;padding:9px 18px;border:none;border-radius:5px;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+.btn:active{transform:scale(.97)}
+.btn-cyan{background:var(--cyan);color:#07090E;font-weight:700}
+.btn-cyan:hover{box-shadow:0 0 16px var(--cyan-glow)}
+.btn-ghost{background:transparent;border:1px solid var(--border2);color:var(--text2)}
+.btn-ghost:hover{border-color:var(--text3);color:var(--text)}
+.btn-danger{background:var(--red);color:#fff}
+.btn-green{background:var(--green);color:#07090E;font-weight:700}
+.btn-sm{padding:6px 12px;font-size:9px}
+.btn-xs{padding:4px 8px;font-size:8px;letter-spacing:1px}
+
+/* ── FORM ── */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-grid .full{grid-column:1/-1}
+label{display:block;font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);margin-bottom:5px}
+input,select,textarea{width:100%;background:#0A0D14;border:1px solid var(--border);border-radius:5px;color:var(--text);font-family:var(--mono);font-size:12px;padding:9px 11px;outline:none;transition:border-color .2s}
+input:focus,select:focus,textarea:focus{border-color:var(--cyan);box-shadow:0 0 0 3px var(--cyan-dim)}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23556480' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;appearance:none;background-color:#0A0D14}
+select option{background:#111520}
+textarea{resize:vertical;min-height:64px;line-height:1.5;font-size:11px}
+input[type=file]{display:none}
+input[type=range]{padding:4px 0;accent-color:var(--cyan)}
+input[type=number]{-moz-appearance:textfield}
+input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none}
+
+/* ── TABLE ── */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11px}
+thead th{text-align:left;padding:9px 12px;color:var(--text3);font-size:8px;letter-spacing:2px;text-transform:uppercase;border-bottom:1px solid var(--border)}
+tbody td{padding:11px 12px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:#0F1520}
+
+/* ── BADGES ── */
+.badge{display:inline-block;font-family:var(--mono);font-size:8px;letter-spacing:.5px;text-transform:uppercase;padding:2px 7px;border-radius:3px}
+.b-sale{background:#00E67618;color:#4EE890}.b-service{background:#A855F718;color:#C080F8}
+.b-purchase{background:#3B82F618;color:#60A0FF}.b-expense{background:#FF444418;color:#FF7070}
+.b-capital{background:#FFB30018;color:#FFD060}.b-withdrawal{background:#55648018;color:#7890A8}
+.b-in{background:#00E67618;color:#4EE890}.b-out{background:#FF444418;color:#FF7070}
+.b-low{background:#FF444418;color:#FF7070}.b-ok{background:#00E67618;color:#4EE890}
+.b-med{background:#FFB30018;color:#FFD060}
+
+/* ── PROGRESS ── */
+.prog-row{margin-bottom:12px}
+.prog-labels{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:5px}
+.prog-track{height:4px;background:var(--border);border-radius:99px;overflow:hidden}
+.prog-fill{height:100%;border-radius:99px;transition:width .6s ease}
+
+/* ── CHART ── */
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.chart-grid .wide{grid-column:1/-1}
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:18px}
+.chart-card canvas{max-height:190px}
+
+/* ── POS SPECIFIC ── */
+.pos-layout{display:grid;grid-template-columns:1fr 340px;gap:16px;min-height:calc(100vh - 140px)}
+.pos-catalog{overflow-y:auto;max-height:calc(100vh - 200px)}
+.pos-cart{position:sticky;top:76px;height:fit-content;max-height:calc(100vh - 100px);overflow-y:auto}
+.pos-search{position:sticky;top:0;background:var(--bg);padding-bottom:10px;z-index:10}
+.item-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.item-card{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:12px;cursor:pointer;transition:all .15s;position:relative}
+.item-card:hover{border-color:var(--cyan);transform:translateY(-1px)}
+.item-card:active{transform:scale(.97)}
+.item-card.out{opacity:.5;cursor:not-allowed}
+.item-card.out:hover{transform:none;border-color:var(--border)}
+.item-name{font-size:11px;font-weight:600;line-height:1.3;margin-bottom:6px;color:var(--text)}
+.item-price{font-family:var(--mono);font-size:13px;color:var(--cyan);font-weight:700}
+.item-stock{font-family:var(--mono);font-size:9px;color:var(--text3);margin-top:3px}
+.item-cat-tag{font-family:var(--mono);font-size:8px;color:var(--text4);text-transform:uppercase;letter-spacing:.5px}
+.cart-item{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--border)}
+.cart-item:last-child{border-bottom:none}
+.cart-name{flex:1;font-size:11px;line-height:1.3}
+.qty-ctrl{display:flex;align-items:center;gap:4px}
+.qty-btn{width:22px;height:22px;background:var(--border2);border:none;border-radius:4px;color:var(--text);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:background .15s}
+.qty-btn:hover{background:var(--cyan);color:#07090E}
+.qty-num{font-family:var(--mono);font-size:12px;width:24px;text-align:center}
+.cart-price{font-family:var(--mono);font-size:12px;color:var(--cyan);white-space:nowrap}
+
+/* ── INVENTORY TABLE ACTIONS ── */
+.del-btn{background:none;border:none;color:var(--text4);cursor:pointer;font-size:10px;padding:3px 6px;border-radius:3px;transition:all .15s;font-family:var(--mono)}
+.del-btn:hover{color:var(--red);background:var(--red-dim)}
+.edit-btn{background:none;border:none;color:var(--text4);cursor:pointer;font-size:10px;padding:3px 6px;border-radius:3px;transition:all .15s;font-family:var(--mono)}
+.edit-btn:hover{color:var(--cyan);background:var(--cyan-dim)}
+
+/* ── MODAL ── */
+.modal-bg{display:none;position:fixed;inset:0;background:#07090Ec0;backdrop-filter:blur(8px);z-index:1000;align-items:center;justify-content:center;padding:16px}
+.modal-bg.open{display:flex}
+.modal{background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:24px;max-width:500px;width:100%;max-height:90vh;overflow-y:auto;animation:fadeUp .2s ease}
+.modal-title{font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--cyan);margin-bottom:16px}
+.modal-actions{display:flex;gap:8px;margin-top:18px;justify-content:flex-end}
+
+/* ── CHAT ── */
+.chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 230px);min-height:380px}
+.chat-hist{flex:1;overflow-y:auto;padding:4px 0 12px}
+.chat-msg{display:flex;gap:10px;margin-bottom:16px;animation:fadeUp .2s ease}
+.chat-msg.user{flex-direction:row-reverse}
+.ch-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:9px;flex-shrink:0;margin-top:2px}
+.ch-av.ai{background:var(--cyan-dim);border:1px solid var(--cyan);color:var(--cyan)}
+.ch-av.usr{background:var(--green-dim);border:1px solid var(--green);color:var(--green)}
+.ch-bub{max-width:84%;padding:12px 16px;border-radius:10px;font-size:13px;line-height:1.8}
+.ch-bub.ai{background:var(--card);border:1px solid var(--border);color:var(--text2);border-top-left-radius:3px}
+.ch-bub.usr{background:var(--green-dim);border:1px solid #00E67630;color:var(--text);border-top-right-radius:3px;font-family:var(--mono);font-size:11px}
+.ch-bub strong{color:var(--text)}
+.ch-bub .num{color:var(--cyan);font-family:var(--mono);font-weight:700}
+.chat-input-row{display:flex;gap:8px;align-items:flex-end;padding-top:12px;border-top:1px solid var(--border)}
+.chat-input{flex:1;background:#0A0D14;border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--sans);font-size:13px;padding:10px 14px;outline:none;resize:none;max-height:100px;transition:border-color .2s;line-height:1.5}
+.chat-input:focus{border-color:var(--cyan)}
+.chat-send-btn{background:var(--cyan);border:none;border-radius:8px;color:#07090E;width:40px;height:40px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:box-shadow .15s}
+.chat-send-btn:hover{box-shadow:0 0 12px var(--cyan-glow)}
+.chat-send-btn:disabled{opacity:.35;cursor:not-allowed}
+.chat-pills{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.pill{background:var(--card2);border:1px solid var(--border);border-radius:20px;color:var(--text3);font-family:var(--mono);font-size:9px;padding:5px 12px;cursor:pointer;transition:all .2s;white-space:nowrap}
+.pill:hover{border-color:var(--cyan);color:var(--cyan)}
+.chat-empty{text-align:center;padding:40px 20px}
+.chat-empty-icon{font-size:28px;margin-bottom:12px;opacity:.4}
+.chat-empty-title{font-size:16px;color:var(--text2);margin-bottom:6px}
+.chat-empty-sub{font-family:var(--mono);font-size:10px;color:var(--text4);line-height:1.8}
+@keyframes pulse{50%{opacity:.4}}
+.thinking-dots span{animation:pulse 1.2s ease infinite}
+.thinking-dots span:nth-child(2){animation-delay:.2s}
+.thinking-dots span:nth-child(3){animation-delay:.4s}
+
+/* ── FILTER BAR ── */
+.filter-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.filter-bar input,.filter-bar select{width:auto;padding:7px 10px;font-size:11px}
+
+/* ── REPORT ── */
+.rrow{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)}
+.rrow:last-child{border-bottom:none}
+.rrow.total{font-weight:700;font-size:14px;padding:14px 0;color:var(--text)}
+.rrow.sub{padding:7px 0 7px 16px;opacity:.8}
+.report2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* ── RESTOCK ── */
+.restock-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)}
+.restock-item:last-child{border-bottom:none}
+
+/* ── MISC ── */
+.flex-between{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+.text-cyan{color:var(--cyan)}.text-green{color:var(--green)}.text-red{color:var(--red)}.text-amber{color:var(--amber)}.text-muted{color:var(--text3)}
+.mono{font-family:var(--mono)}
+.gap8{gap:8px}.mt8{margin-top:8px}.mt14{margin-top:14px}.mt20{margin-top:20px}
+.empty{text-align:center;padding:32px;color:var(--text4);font-family:var(--mono);font-size:10px;letter-spacing:1px}
+.ticker{font-family:var(--mono);font-size:clamp(26px,4vw,42px);font-weight:700;letter-spacing:-1px}
+.divider{border:none;border-top:1px solid var(--border);margin:16px 0}
+.set-sec{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:12px}
+.set-sec h3{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--cyan);margin-bottom:16px}
+.spin{animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loader-row{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:10px;color:var(--text3);padding:16px}
+.loader-circle{width:14px;height:14px;border:2px solid var(--border2);border-top-color:var(--cyan);border-radius:50%}
+.low-stock-dot{width:7px;height:7px;border-radius:50%;background:var(--red);display:inline-block;margin-right:4px;animation:pulse 1.4s ease infinite}
+.category-pill{display:inline-block;font-family:var(--mono);font-size:8px;padding:2px 8px;border-radius:3px;background:var(--border);color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
+.pos-total-bar{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:16px;margin-top:12px}
+.pos-total-row{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--text3);padding:3px 0}
+.pos-total-row.big{font-size:18px;font-weight:700;color:var(--text);padding:8px 0 0}
+.number-circle{width:20px;height:20px;border-radius:50%;background:var(--cyan);color:#07090E;font-family:var(--mono);font-size:10px;font-weight:700;display:inline-flex;align-items:center;justify-content:center}
+.insight-box{background:var(--card2);border:1px solid var(--cyan-dim);border-radius:8px;padding:20px;line-height:1.9;font-size:13px;color:var(--text2)}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  .pos-layout{grid-template-columns:1fr}
+  .chart-grid{grid-template-columns:1fr}
+  .report2{grid-template-columns:1fr}
+  .stat-grid{grid-template-columns:1fr 1fr}
+  nav .nav-tabs,.nav-actions{display:none}
+  .mob-nav{display:block}
+  .fab{display:flex}
+  main{padding:16px 12px 78px}
+  table{font-size:10px}
+  thead th{padding:7px 8px}
+  tbody td{padding:9px 8px}
+  #dash-velocity-grid{grid-template-columns:1fr!important}
 }
-
-/* SCROLLBAR */
-::-webkit-scrollbar { width: 3px; }
-::-webkit-scrollbar-track { background: var(--bg); }
-::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
-
-/* LAYOUT */
-.page { max-width: 900px; margin: 0 auto; padding: 80px 28px 120px; position: relative; z-index: 1; }
-
-/* HEADER */
-.masthead { margin-bottom: 80px; }
-.masthead-eyebrow { font-family: var(--mono); font-size: 10px; letter-spacing: 4px; text-transform: uppercase; color: var(--amber); margin-bottom: 20px; display: flex; align-items: center; gap: 12px; }
-.masthead-eyebrow::before { content: ''; display: block; width: 40px; height: 1px; background: var(--amber); }
-.masthead h1 { font-size: clamp(36px, 7vw, 72px); font-weight: 400; line-height: 1.1; letter-spacing: -1px; margin-bottom: 8px; }
-.masthead h1 em { font-style: italic; color: var(--amber); }
-.masthead-sub { font-family: var(--mono); font-size: 12px; color: var(--ink3); letter-spacing: 1px; margin-top: 16px; }
-.masthead-meta { display: flex; gap: 32px; margin-top: 32px; flex-wrap: wrap; }
-.meta-item { font-family: var(--mono); font-size: 10px; }
-.meta-label { color: var(--ink3); letter-spacing: 2px; text-transform: uppercase; display: block; margin-bottom: 4px; }
-.meta-value { color: var(--ink); font-size: 13px; }
-
-/* DIVIDER */
-.rule { border: none; border-top: 1px solid var(--border); margin: 60px 0; }
-
-/* SECTION */
-.section { margin-bottom: 64px; }
-.section-header { display: flex; align-items: baseline; gap: 16px; margin-bottom: 32px; }
-.section-num { font-family: var(--mono); font-size: 10px; color: var(--amber); letter-spacing: 2px; flex-shrink: 0; }
-.section-title { font-size: clamp(22px, 4vw, 32px); font-weight: 400; letter-spacing: -.5px; }
-.section-title em { font-style: italic; color: var(--amber); }
-
-/* PROSE */
-p { color: var(--ink2); margin-bottom: 16px; font-size: 15px; line-height: 1.85; }
-p strong { color: var(--ink); font-weight: 400; font-style: italic; }
-p.lead { font-size: 17px; color: var(--ink); line-height: 1.8; }
-
-/* PRINCIPLE CARDS */
-.principle-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-bottom: 32px; }
-.principle { background: var(--card); padding: 24px; }
-.principle-icon { font-size: 20px; margin-bottom: 12px; }
-.principle-title { font-family: var(--mono); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--amber); margin-bottom: 8px; }
-.principle-text { font-size: 13px; color: var(--ink2); line-height: 1.7; }
-
-/* LAYER CARDS */
-.layer { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 24px 28px; margin-bottom: 12px; position: relative; overflow: hidden; }
-.layer::before { content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 3px; }
-.layer.l-browser::before { background: var(--cyan); }
-.layer.l-edge::before { background: var(--amber); }
-.layer.l-backend::before { background: var(--blue); }
-.layer.l-db::before { background: var(--green); }
-.layer.l-ai::before { background: var(--purple); }
-.layer.l-comms::before { background: var(--red); }
-.layer-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
-.layer-badge { font-family: var(--mono); font-size: 9px; letter-spacing: 2px; text-transform: uppercase; padding: 3px 10px; border-radius: 3px; }
-.lb-cyan { background: var(--cyan-dim); color: var(--cyan); border: 1px solid #00C8E030; }
-.lb-amber { background: var(--amber-dim); color: var(--amber); border: 1px solid #E8A83030; }
-.lb-blue { background: var(--blue-dim); color: var(--blue); border: 1px solid #3B82F630; }
-.lb-green { background: var(--green-dim); color: var(--green); border: 1px solid #22C55E30; }
-.lb-purple { background: var(--purple-dim); color: var(--purple); border: 1px solid #A855F730; }
-.lb-red { background: var(--red-dim); color: var(--red); border: 1px solid #EF444430; }
-.lb-free { background: #22C55E08; color: #22C55E; border: 1px solid #22C55E20; }
-.lb-strategic { background: #E8A83008; color: #E8A830; border: 1px solid #E8A83020; }
-.lb-future { background: #A855F708; color: #A855F7; border: 1px solid #A855F720; }
-.layer-name { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--ink); }
-.layer-host { font-family: var(--mono); font-size: 10px; color: var(--ink3); }
-.layer-desc { font-size: 13px; color: var(--ink2); margin-bottom: 12px; line-height: 1.7; }
-.layer-items { display: flex; flex-wrap: wrap; gap: 6px; }
-.tag { font-family: var(--mono); font-size: 9px; letter-spacing: .5px; padding: 3px 8px; border-radius: 3px; background: var(--border); color: var(--ink3); text-transform: uppercase; }
-.tag.hot { background: var(--amber-dim); color: var(--amber); }
-.tag.new { background: var(--cyan-dim); color: var(--cyan); }
-
-/* FEATURE TABLE */
-.feat-table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 11px; margin-bottom: 32px; }
-.feat-table thead th { text-align: left; padding: 10px 14px; color: var(--ink3); font-size: 9px; letter-spacing: 2px; text-transform: uppercase; border-bottom: 1px solid var(--border); }
-.feat-table tbody td { padding: 12px 14px; border-bottom: 1px solid var(--border); color: var(--ink2); vertical-align: top; }
-.feat-table tbody tr:last-child td { border-bottom: none; }
-.feat-table tbody tr:hover td { background: #FFFFFF04; }
-.feat-name { color: var(--ink); font-weight: 700; font-size: 12px; }
-.feat-who { font-size: 9px; letter-spacing: 1px; }
-.pill-admin { background: var(--blue-dim); color: var(--blue); border: 1px solid #3B82F620; padding: 2px 7px; border-radius: 3px; white-space: nowrap; }
-.pill-cust { background: var(--green-dim); color: var(--green); border: 1px solid #22C55E20; padding: 2px 7px; border-radius: 3px; white-space: nowrap; }
-.pill-both { background: var(--amber-dim); color: var(--amber); border: 1px solid #E8A83020; padding: 2px 7px; border-radius: 3px; white-space: nowrap; }
-.phase-0 { color: var(--cyan); }.phase-1 { color: var(--green); }.phase-2 { color: var(--amber); }.phase-3 { color: var(--purple); }
-
-/* ROADMAP */
-.roadmap { position: relative; padding-left: 32px; }
-.roadmap::before { content: ''; position: absolute; left: 10px; top: 8px; bottom: 8px; width: 1px; background: var(--border); }
-.phase { position: relative; margin-bottom: 40px; }
-.phase::before { content: ''; position: absolute; left: -26px; top: 6px; width: 10px; height: 10px; border-radius: 50%; border: 2px solid; }
-.phase.p0::before { border-color: var(--cyan); background: var(--cyan); box-shadow: 0 0 12px var(--cyan); }
-.phase.p1::before { border-color: var(--green); background: var(--green); }
-.phase.p2::before { border-color: var(--amber); background: transparent; }
-.phase.p3::before { border-color: var(--purple); background: transparent; }
-.phase-label { font-family: var(--mono); font-size: 9px; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 6px; }
-.phase-title { font-size: 18px; margin-bottom: 10px; }
-.phase-items { font-family: var(--mono); font-size: 11px; color: var(--ink2); line-height: 2; }
-.phase-items span { display: inline-block; margin-right: 6px; }
-
-/* CONNECTIONS */
-.conn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
-.conn-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 18px; }
-.conn-from { font-family: var(--mono); font-size: 9px; color: var(--ink3); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
-.conn-name { font-size: 14px; margin-bottom: 6px; }
-.conn-detail { font-family: var(--mono); font-size: 10px; color: var(--ink3); line-height: 1.8; }
-.arrow { color: var(--amber); margin: 0 4px; }
-
-/* FLOW DIAGRAM */
-.flow { display: flex; align-items: stretch; gap: 0; overflow-x: auto; padding: 24px 0; margin-bottom: 32px; }
-.flow-node { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 16px 20px; min-width: 140px; flex-shrink: 0; }
-.flow-arrow { display: flex; align-items: center; padding: 0 8px; color: var(--amber); font-size: 18px; flex-shrink: 0; }
-.flow-label { font-family: var(--mono); font-size: 8px; color: var(--ink3); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 6px; }
-.flow-name { font-size: 13px; color: var(--ink); }
-
-/* SARAH BOX */
-.sarah-box { background: linear-gradient(135deg, #0D1018, #111620); border: 1px solid #A855F730; border-radius: 8px; padding: 28px; margin-bottom: 24px; position: relative; overflow: hidden; }
-.sarah-box::before { content: ''; position: absolute; top: -40px; right: -40px; width: 120px; height: 120px; background: var(--purple-dim); border-radius: 50%; }
-.sarah-header { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
-.sarah-avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--purple-dim); border: 1px solid #A855F750; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
-.sarah-name { font-size: 18px; color: var(--ink); }
-.sarah-role { font-family: var(--mono); font-size: 9px; color: var(--purple); letter-spacing: 2px; text-transform: uppercase; }
-.sarah-abilities { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px; }
-.sarah-ab { font-family: var(--mono); font-size: 10px; color: var(--ink3); padding: 8px 12px; background: #A855F708; border: 1px solid #A855F715; border-radius: 4px; line-height: 1.5; }
-.sarah-ab strong { color: var(--purple); display: block; font-size: 9px; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 2px; }
-
-/* COST TABLE */
-.cost-table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 11px; }
-.cost-table thead th { text-align: left; padding: 10px 14px; color: var(--ink3); font-size: 9px; letter-spacing: 2px; text-transform: uppercase; border-bottom: 1px solid var(--border); }
-.cost-table tbody td { padding: 11px 14px; border-bottom: 1px solid var(--border); color: var(--ink2); }
-.cost-table tbody tr:last-child td { border-bottom: none; }
-.cost-0 { color: var(--green); }.cost-low { color: var(--amber); }.cost-med { color: var(--red); }
-
-/* DECISION BOX */
-.decision { background: var(--card); border: 1px solid var(--amber); border-radius: 8px; padding: 24px 28px; margin: 32px 0; }
-.decision-label { font-family: var(--mono); font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--amber); margin-bottom: 10px; }
-.decision p { color: var(--ink); font-size: 14px; margin-bottom: 8px; }
-.decision p:last-child { margin-bottom: 0; }
-
-/* QUOTE */
-.quote { border-left: 3px solid var(--amber); padding: 16px 24px; margin: 32px 0; }
-.quote p { color: var(--ink); font-style: italic; font-size: 17px; margin: 0; }
-.quote-attr { font-family: var(--mono); font-size: 9px; color: var(--ink3); letter-spacing: 2px; text-transform: uppercase; margin-top: 8px; }
-
-/* FOOTER */
-footer { border-top: 1px solid var(--border); padding-top: 40px; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px; }
-.footer-logo { font-family: var(--mono); font-size: 11px; color: var(--amber); letter-spacing: 3px; }
-.footer-meta { font-family: var(--mono); font-size: 9px; color: var(--ink3); text-align: right; line-height: 2; }
-
-/* RESPONSIVE */
-@media (max-width: 640px) {
-  .page { padding: 40px 18px 80px; }
-  .conn-grid { grid-template-columns: 1fr; }
-  .sarah-abilities { grid-template-columns: 1fr; }
-  .feat-table { font-size: 10px; }
-  .feat-table thead th, .feat-table tbody td { padding: 8px 8px; }
-}
-
-@media print {
-  body { background: #fff; color: #000; }
-  .page { padding: 20px; }
-  .layer, .principle, .conn-card, .sarah-box, .decision { border-color: #ccc; background: #f9f9f9; }
+@media(max-width:480px){
+  .stat-grid{grid-template-columns:1fr 1fr}
+  .form-grid{grid-template-columns:1fr}
+  .form-grid .full{grid-column:1}
+  .item-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}
 }
 </style>
 </head>
 <body>
-<div class="page">
 
-  <!-- MASTHEAD -->
-  <div class="masthead">
-    <div class="masthead-eyebrow">Living Architecture Document · v1.0</div>
-    <h1>K-Tech <em>Electronics</em><br>& Hardware Store</h1>
-    <div class="masthead-sub">TECHNOLOGY STACK · SYSTEM ARCHITECTURE · AUTOMATION ROADMAP</div>
-    <div class="masthead-meta">
-      <div class="meta-item"><span class="meta-label">Document Date</span><span class="meta-value">April 2026</span></div>
-      <div class="meta-item"><span class="meta-label">Status</span><span class="meta-value">MVP — Week 1 Launch</span></div>
-      <div class="meta-item"><span class="meta-label">Classification</span><span class="meta-value">Internal · Founder + Investor</span></div>
-      <div class="meta-item"><span class="meta-label">Ecosystem</span><span class="meta-value">CloudOven Infrastructure</span></div>
-    </div>
+<!-- NAV -->
+<nav>
+  <div class="nav-logo" onclick="goto('dashboard')">
+    <div class="bolt">⚡</div>
+    <span id="navTitle">VOLTA OS</span>
   </div>
-
-  <!-- PHILOSOPHY -->
-  <div class="section">
-    <div class="section-header">
-      <span class="section-num">00</span>
-      <h2 class="section-title">The <em>Premise</em></h2>
-    </div>
-
-    <p class="lead">Most hardware shops in Kenya run on WhatsApp messages, exercise books, and memory. K-Tech is not opening as a hardware shop. It is opening as a <strong>technology company that sells electronics</strong>. The difference is not cosmetic — it is structural.</p>
-
-    <p>The same infrastructure already powering CloudOven — Supabase, Vercel, Render, Twilio, and the Zovrix AI employees — can be leveraged for K-Tech at near-zero marginal cost. Sarah, who already closes sales and handles customer support for CloudOven, can be extended to work the K-Tech WhatsApp line.</p>
-
-    <p>The goal of this document is not to impress. It is to give the founder and the investor a clear, honest picture of what we are building, what it costs, what it unlocks, and in what order we do things.</p>
-
-    <div class="quote">
-      <p>"We do not mix. We move with longevity attitude and calm strategic approach."</p>
-      <div class="quote-attr">— Founder directive, April 2026</div>
-    </div>
-
-    <div class="principle-grid">
-      <div class="principle">
-        <div class="principle-icon">🏗</div>
-        <div class="principle-title">Separation of Concerns</div>
-        <div class="principle-text">K-Tech gets its own isolated Supabase project, its own Vercel deployment, its own Render service. CloudOven and K-Tech share infrastructure providers — not infrastructure itself.</div>
-      </div>
-      <div class="principle">
-        <div class="principle-icon">📐</div>
-        <div class="principle-title">MVP First, Scale Always</div>
-        <div class="principle-text">Week 1: the shop opens with a working POS and inventory system. Nothing more. Every additional feature is added only when the business operation demands it.</div>
-      </div>
-      <div class="principle">
-        <div class="principle-icon">🤖</div>
-        <div class="principle-title">Automate What Repeats</div>
-        <div class="principle-text">Every task a human does more than 3 times a day is a candidate for automation. Restock alerts, daily summaries, customer receipts, WhatsApp replies — zero human effort, zero cost.</div>
-      </div>
-      <div class="principle">
-        <div class="principle-icon">💸</div>
-        <div class="principle-title">Free Until It Hurts</div>
-        <div class="principle-text">We extract maximum value from every free tier before spending a shilling. When we pay, it is because the revenue justifies it — not because it was convenient.</div>
-      </div>
-    </div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="goto('dashboard')">Dashboard</button>
+    <button class="nav-tab" onclick="goto('pos')">⚡ POS</button>
+    <button class="nav-tab" onclick="goto('inventory')">Inventory</button>
+    <button class="nav-tab" onclick="goto('add')">＋ Entry</button>
+    <button class="nav-tab" onclick="goto('history')">History</button>
+    <button class="nav-tab" onclick="goto('reports')">Reports</button>
+    <button class="nav-tab" onclick="goto('restock')">Restock</button>
+    <button class="nav-tab" onclick="goto('ask')">✦ Ask AI</button>
+    <button class="nav-tab" onclick="goto('insights')">AI Insights</button>
+    <button class="nav-tab" onclick="goto('customers')">Customers</button>
+    <button class="nav-tab" onclick="goto('settings')">Settings</button>
   </div>
-
-  <hr class="rule">
-
-  <!-- TECH STACK -->
-  <div class="section">
-    <div class="section-header">
-      <span class="section-num">01</span>
-      <h2 class="section-title">The <em>Stack</em></h2>
-    </div>
-
-    <p>The architecture has six layers. Each layer has a clear owner, a clear tool, and a clear cost. Nothing is speculative.</p>
-
-    <!-- Layer 1 -->
-    <div class="layer l-browser">
-      <div class="layer-header">
-        <span class="layer-badge lb-cyan">Layer 1</span>
-        <span class="layer-name">Volta OS — Shop Management App</span>
-        <span class="layer-badge lb-free">Free · Browser</span>
-      </div>
-      <div class="layer-desc">
-        The single-file HTML application (already built). Runs entirely in the browser — no server needed for core shop operations. Works offline. The admin's daily tool: POS, inventory, transactions, reports, restock planner, customer ledger.
-        In Phase 1, it connects to Supabase for cloud sync and becomes a proper PWA installable on any Android phone.
-      </div>
-      <div class="layer-items">
-        <span class="tag hot">POS</span><span class="tag hot">Inventory</span><span class="tag">Transactions</span>
-        <span class="tag">Reports</span><span class="tag">Restock Planner</span><span class="tag">Customer Ledger</span>
-        <span class="tag new">Groq AI (Ask + Insights)</span><span class="tag new">Daily Briefing</span>
-        <span class="tag">WhatsApp Receipts</span><span class="tag">Printable Reports</span><span class="tag new">Offline PWA</span>
-      </div>
-    </div>
-
-    <!-- Layer 2 -->
-    <div class="layer l-edge">
-      <div class="layer-header">
-        <span class="layer-badge lb-amber">Layer 2</span>
-        <span class="layer-name">Vercel — Frontend Hosting</span>
-        <span class="layer-badge lb-free">Free Tier · Hobby</span>
-      </div>
-      <div class="layer-desc">
-        K-Tech gets its own Vercel project (separate from CloudOven). Hosts the Volta OS app as a public URL and optionally a customer-facing product catalogue. Vercel's edge network means it loads fast everywhere in Kenya, including on mobile data. Custom domain e.g. <strong>app.ktechke.com</strong> when ready.
-      </div>
-      <div class="layer-items">
-        <span class="tag">ktech-os.vercel.app (now)</span>
-        <span class="tag new">app.ktechke.com (Phase 2)</span>
-        <span class="tag">Customer Catalogue</span>
-        <span class="tag">CI/CD via GitHub</span>
-      </div>
-    </div>
-
-    <!-- Layer 3 -->
-    <div class="layer l-backend">
-      <div class="layer-header">
-        <span class="layer-badge lb-blue">Layer 3</span>
-        <span class="layer-name">Render — Backend API</span>
-        <span class="layer-badge lb-free">Free Tier · Web Service</span>
-      </div>
-      <div class="layer-desc">
-        A lightweight Node.js / Express service — K-Tech's own instance, separate from CloudOven's backend. Handles: Twilio WhatsApp webhooks, M-Pesa Daraja callbacks, Groq API calls server-side (key stays server-side, never in the browser in production), and scheduled jobs (daily summary email, weekly backup trigger). Free tier on Render is sufficient for Phase 1 traffic.
-      </div>
-      <div class="layer-items">
-        <span class="tag">WhatsApp Webhook</span><span class="tag">M-Pesa Callback</span>
-        <span class="tag new">Groq Server-Side Proxy</span><span class="tag">Scheduled Jobs (node-cron)</span>
-        <span class="tag">Receipt Generator</span><span class="tag">Inventory API</span>
-      </div>
-    </div>
-
-    <!-- Layer 4 -->
-    <div class="layer l-db">
-      <div class="layer-header">
-        <span class="layer-badge lb-green">Layer 4</span>
-        <span class="layer-name">Supabase — Database + Auth + Realtime</span>
-        <span class="layer-badge lb-free">Free Tier · 500MB · 50k rows</span>
-      </div>
-      <div class="layer-desc">
-        K-Tech's own Supabase project (not CloudOven's). Stores all transactions, inventory, customers, sales, restock history. Supabase Realtime means if the owner is on the laptop and the staff is on the phone, both see live updates. Row-level security ensures staff can only write — not read financials. Free tier supports years of a single shop's data volume.
-      </div>
-      <div class="layer-items">
-        <span class="tag">transactions</span><span class="tag">inventory</span><span class="tag">customers</span>
-        <span class="tag">sales</span><span class="tag">restock_log</span><span class="tag">daily_snapshots</span>
-        <span class="tag new">Realtime sync</span><span class="tag new">Row Level Security</span>
-        <span class="tag">Auth (PIN / email)</span><span class="tag">Storage (receipts)</span>
-      </div>
-    </div>
-
-    <!-- Layer 5 -->
-    <div class="layer l-ai">
-      <div class="layer-header">
-        <span class="layer-badge lb-purple">Layer 5</span>
-        <span class="layer-name">Groq — AI Engine (Llama 3.3 70B)</span>
-        <span class="layer-badge lb-free">Free Tier · 14,400 req/day</span>
-      </div>
-      <div class="layer-desc">
-        Replaces Anthropic API for all AI features. Groq's free tier is extremely generous — 14,400 requests per day at zero cost. Llama 3.3 70B is strong enough for every financial analysis, restock recommendation, daily briefing, and conversational query the shop will generate. Key stored server-side on Render (not in browser) in production.
-      </div>
-      <div class="layer-items">
-        <span class="tag hot">Ask AI (conversational)</span><span class="tag hot">Daily Auto-Briefing</span>
-        <span class="tag">AI Insights</span><span class="tag">Smart Price Suggestions</span>
-        <span class="tag new">Auto Transaction Categorisation</span><span class="tag new">Restock Intelligence</span>
-        <span class="tag new">WhatsApp Bot Brain</span>
-      </div>
-    </div>
-
-    <!-- Layer 6 -->
-    <div class="layer l-comms">
-      <div class="layer-header">
-        <span class="layer-badge lb-red">Layer 6</span>
-        <span class="layer-name">Twilio + Zovrix — Communications</span>
-        <span class="layer-badge lb-strategic">Strategic · Shared Infra</span>
-      </div>
-      <div class="layer-desc">
-        Here is where K-Tech inherits power from CloudOven at zero additional cost. The same Twilio account already running Sarah for CloudOven can host a second WhatsApp number for K-Tech. Sarah's framework (Zovrix AI) can be configured with K-Tech's personality, inventory knowledge, and business rules. When a customer WhatsApps the shop: Sarah replies, checks stock, sends prices, takes orders, and hands off to a human only when needed. This is enterprise-grade automation at startup cost.
-      </div>
-      <div class="layer-items">
-        <span class="tag hot">WhatsApp Business (K-Tech number)</span>
-        <span class="tag hot">Sarah — AI Employee (extended)</span>
-        <span class="tag">Stock Query Bot</span><span class="tag">Order Inquiry</span>
-        <span class="tag">Price List on Demand</span><span class="tag new">M-Pesa Payment Confirm SMS</span>
-        <span class="tag">Low Stock SMS to Owner</span>
-      </div>
-    </div>
+  <div class="nav-actions">
+    <button class="btn btn-ghost btn-sm" onclick="exportData()">↓ Export</button>
   </div>
+</nav>
 
-  <hr class="rule">
-
-  <!-- SARAH EXTENSION -->
-  <div class="section">
-    <div class="section-header">
-      <span class="section-num">02</span>
-      <h2 class="section-title">Sarah — <em>Extended</em></h2>
-    </div>
-
-    <p>Sarah is already live and closing sales for CloudOven. Extending her to K-Tech is not a new project — it is a configuration. The Twilio infrastructure, the webhook architecture, the Groq brain, the conversation logic — all exist. K-Tech gets a version of Sarah configured for electronics retail. Call her the same or give her a K-Tech persona. The cost of this extension is essentially zero.</p>
-
-    <div class="sarah-box">
-      <div class="sarah-header">
-        <div class="sarah-avatar">🤖</div>
-        <div>
-          <div class="sarah-name">Sarah — K-Tech Instance</div>
-          <div class="sarah-role">AI Shop Assistant · Zovrix · Twilio WhatsApp</div>
-        </div>
-      </div>
-      <p style="font-size:13px;color:var(--ink2);margin-bottom:0">A customer WhatsApps K-Tech Electronics. Sarah picks up. No human needed unless it escalates.</p>
-      <div class="sarah-abilities">
-        <div class="sarah-ab"><strong>Stock Query</strong>"Do you have MCB 32A?" → checks live Supabase → "Yes, KSh 250. 8 in stock."</div>
-        <div class="sarah-ab"><strong>Price List</strong>"What bulbs do you have?" → returns formatted list of available LED bulbs with prices.</div>
-        <div class="sarah-ab"><strong>Order / Reserve</strong>Customer says "keep 2 MCBs for me" → logs reservation in system, notifies owner.</div>
-        <div class="sarah-ab"><strong>Hours & Location</strong>Directions, opening hours, contact — zero human involvement.</div>
-        <div class="sarah-ab"><strong>Receipt Delivery</strong>After in-store sale, owner triggers WhatsApp receipt → Sarah delivers it to customer.</div>
-        <div class="sarah-ab"><strong>Handoff</strong>Complex queries or negotiation → "Let me connect you to the team" → notifies owner.</div>
-      </div>
-    </div>
+<!-- MOBILE NAV -->
+<div class="mob-nav">
+  <div class="mob-inner">
+    <button class="mob-tab active" id="mob-dashboard" onclick="goto('dashboard')">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      <span>Dash</span>
+    </button>
+    <button class="mob-tab" id="mob-pos" onclick="goto('pos')">
+      <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01"/></svg>
+      <span>POS</span>
+    </button>
+    <button class="mob-tab" id="mob-inventory" onclick="goto('inventory')">
+      <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+      <span>Stock</span>
+    </button>
+    <button class="mob-tab" id="mob-reports" onclick="goto('reports')">
+      <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      <span>Reports</span>
+    </button>
+    <button class="mob-tab" id="mob-ask" onclick="goto('ask')">
+      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <span>Ask AI</span>
+    </button>
+    <button class="mob-tab" id="mob-settings" onclick="goto('settings')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06A1.65 1.65 0 0 0 15 19.4a1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <span>Settings</span>
+    </button>
   </div>
-
-  <hr class="rule">
-
-  <!-- AUTOMATION FEATURE LIST -->
-  <div class="section">
-    <div class="section-header">
-      <span class="section-num">03</span>
-      <h2 class="section-title">Automation <em>Matrix</em></h2>
-    </div>
-
-    <p>Every automation below is classified by who it serves, what phase it launches in, and its true cost. Nothing is padded. Nothing is aspirational without a delivery date.</p>
-
-    <table class="feat-table">
-      <thead>
-        <tr>
-          <th>Feature</th>
-          <th>Serves</th>
-          <th>Phase</th>
-          <th>Cost</th>
-          <th>How</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><div class="feat-name">POS with stock auto-deduction</div></td>
-          <td><span class="pill-admin">Admin</span></td>
-          <td><span class="phase-0">MVP</span></td>
-          <td class="cost-0">Free</td>
-          <td>Browser JS → Supabase</td>
-        </tr>
-        <tr>
-          <td><div class="feat-name">Groq-powered Ask AI</div></td>
-          <td><span class="pill-admin">Admin</span></td>
-          <td><span class="phase-0">MVP</span></td>
-          <td class="cost-0">Free</td>
-          <td>Groq free tier (14k/day)</td>
-        </tr>
-        <tr>
-          <td><div class="feat-name">Auto daily briefing on dashboard open</div></td>
-          <td><span class="pill-admin">Admin</span></td>
-          <td><span class="phase-0">MVP</span></td>
-          <td class="cost-0">Free</td>
-          <td>Groq · 1 call/day</td>
-        </tr>
-        <tr>
-          <td><div class="feat-name">Low stock detection + reorder alert</div></td>
-          <td><span class="pill-admin">Admin</span></td>
-          <td><span class="phase-0">MVP</span></td>
-          <td class="cost-0">Free</td>
-          <td>Pure JS logic on inventory load</td>
-        </tr>
-        <tr>
-          <td><div class="feat-name">WhatsApp receipt link after sale</div></td>
-          <td><span class="pill-cust">Customer</span></td>
-          <td><span class="phase-0">MVP</span></td>
-          <td class="cost-0">Free</td>
-          <td>wa.me deep link with pre-filled text</td>
-        </tr>
-        <tr>
-          <td><div class="feat-name">Printable end-of-day report</div></td>
-          <td><span class="pill-admin">Admin</span></td>
-          <td><span class="phase-0">MVP</span></td>
-          <td class="cost-0">Free</td>
-          <td>Browser print CSS</td>
-        </tr>
-        <tr>
-          <td><div class="feat-name">Auto-categorise transaction by description</div></td>
-          <td><span class="pill-admin">Admin</span></td>
-          <td><span class="phase-0">MVP</span></td>
-          <td class="cost-0">Free</td>
-          <td>Groq on description blur</td>
-        </tr>
-        <tr>
-          <td><div class="feat-name">Smart sell-price suggestion when adding item</div></td>
-          <td><span class="pill-admin">Admin</span></td>
-          <td><span class="phase-0">MVP</span></td>
-          <td class="cost-0">Free</td>
-          <td>Groq + shop margin history</td>
-        </tr>
-        <tr>
-          <td><div class="feat-name">Credit sale / debt tracker</div></td>
-          <td><span class="pill-both">Admin + Customer</span></td>
-          <td><span class="phase-0">MVP</span></td>
-          <td class="cost-0">Free</td>
-          <td>Customer ledger in localStorage → Supabase</td>
-        </tr>
-        <tr>
-          <td><div class="feat-name">Sales velocity — fast movers panel</div></td>
-          <td><span class="pill-admin">Admin</span></td>
-          <td><span class="phase-0">MVP</span></td>
-          <td class="cost-0">Free</td>
-          <td>Aggregate sales data in JS</td>
-        </tr>
-        <tr>
-          <td><div class="feat-name">Recurring expense reminders</div></td>
-          <td><span class="pill-admin">Admin</span></td>
-          <td><span class="phase-0">MVP</span></td>
-          <td class="cost-0">Free</td>
-          <td>localStorage scheduled check on app open</td>
-        </tr>
-        <tr>
-          <td><div class="feat-name">Inventory CSV export / import</div></td>
-          <td><span class="pill-admin">Admin</span></td>
-          <td><span class="phase-0">MVP</span></td>
-          <td class="cost-0">Free</td>
-          <td>Browser Blob download</td>
-        </tr>
-        <tr>
-          <td><div class="feat-name">Cloud sync across devices (Supabase)</div></td>
-          <td><span class="pill-admin">Admin</span></td>
-          <td><span class="phase-1">Phase 1</span></td>
-          <td class="cost-0">Free</td>
-          <td>Supabase free tier (500MB)</td>
-        </tr>
-        <tr>
-          <td><div class="feat-name">Staff PIN login + role separation</div></td>
-          <td><span class="pill-admin">Admin</span></td>
-          <td><span class="phase-1">Phase 1</span></td>
-          <td class="cost-0">Free</td>
-          <td>Supabase Auth + Row Level Security</td>
-        </tr>
-        <tr>
-          <td><div class="feat-name">PWA — install on Android phone</div></td>
-          <td><span class="pill-admin">Admin</span></td>
-          <td><span class="phase-1">Phase 1</span></td>
-          <td class="cost-0">Free</td>
-          <td>Service Worker + manifest.json</td>
-        </tr>
-        <tr>
-          <td><div class="feat-name">WhatsApp AI Bot (Sarah — K-Tech)</div></td>
-          <td><span class="pill-cust">Customer</span></td>
-          <td><span class="phase-1">Phase 1</span></td>
-          <td class="cost-low">~$0 (Twilio sandbox)</td>
-          <td>Extend existing Zovrix infra</td>
-        </tr>
-        <tr>
-          <td><div class="feat-name">Customer-facing stock catalogue (web)</div></td>
-          <td><span class="pill-cust">Customer</span></td>
-          <td><span class="phase-1">Phase 1</span></td>
-          <td class="cost-0">Free</td>
-          <td>Static Vercel page from Supabase data</td>
-        </tr>
-        <tr>
-          <td><div class="feat-name">Camera barcode scanning → POS</div></td>
-          <td><span class="pill-admin">Admin</span></td>
-          <td><span class="phase-1">Phase 1</span></td>
-          <td class="cost-0">Free</td>
-          <td>ZXing.js (browser barcode lib)</td>
-        </tr>
-        <tr>
-          <td><div class="feat-name">M-Pesa payment auto-confirmation</div></td>
-          <td><span class="pill-both">Admin + Customer</span></td>
-          <td><span class="phase-2">Phase 2</span></td>
-          <td class="cost-low">Daraja API (free to register)</td>
-          <td>Safaricom Daraja STK Push → Render webhook</td>
-        </tr>
-        <tr>
-          <td><div class="feat-name">Low stock SMS to owner phone</div></td>
-          <td><span class="pill-admin">Admin</span></td>
-          <td><span class="phase-2">Phase 2</span></td>
-          <td class="cost-low">Africa's Talking ~KSh 0.80/SMS</td>
-          <td>Render cron → AT API</td>
-        </tr>
-        <tr>
-          <td><div class="feat-name">Supplier price comparison tool</div></td>
-          <td><span class="pill-admin">Admin</span></td>
-          <td><span class="phase-2">Phase 2</span></td>
-          <td class="cost-0">Free</td>
-          <td>CSV import from supplier, compare vs current buy price</td>
-        </tr>
-        <tr>
-          <td><div class="feat-name">Auto monthly P&L email to investor</div></td>
-          <td><span class="pill-admin">Admin</span></td>
-          <td><span class="phase-2">Phase 2</span></td>
-          <td class="cost-0">Free</td>
-          <td>Render cron + Resend free (3k emails/mo)</td>
-        </tr>
-        <tr>
-          <td><div class="feat-name">Customer loyalty / repeat tracker</div></td>
-          <td><span class="pill-cust">Customer</span></td>
-          <td><span class="phase-3">Phase 3</span></td>
-          <td class="cost-0">Free</td>
-          <td>Supabase customer table + visit count</td>
-        </tr>
-        <tr>
-          <td><div class="feat-name">Multi-branch support</div></td>
-          <td><span class="pill-admin">Admin</span></td>
-          <td><span class="phase-3">Phase 3</span></td>
-          <td class="cost-low">Supabase Pro if needed</td>
-          <td>Branch_id column on all tables + RLS</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <hr class="rule">
-
-  <!-- DATA FLOW -->
-  <div class="section">
-    <div class="section-header">
-      <span class="section-num">04</span>
-      <h2 class="section-title">How Data <em>Flows</em></h2>
-    </div>
-
-    <p>Understanding the data flow prevents future architectural mistakes. Every arrow below represents a real connection with a known cost and a known failure mode.</p>
-
-    <p><strong>Admin Sale Flow (POS)</strong></p>
-    <div class="flow">
-      <div class="flow-node"><div class="flow-label">Admin</div><div class="flow-name">Taps item in POS</div></div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-node"><div class="flow-label">Browser</div><div class="flow-name">Volta OS calculates total</div></div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-node"><div class="flow-label">Supabase</div><div class="flow-name">Logs sale, deducts stock</div></div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-node"><div class="flow-label">WhatsApp</div><div class="flow-name">Receipt link sent to customer</div></div>
-    </div>
-
-    <p><strong>Customer WhatsApp Flow (Sarah)</strong></p>
-    <div class="flow">
-      <div class="flow-node"><div class="flow-label">Customer</div><div class="flow-name">"Do you have MCB 16A?"</div></div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-node"><div class="flow-label">Twilio</div><div class="flow-name">Receives WhatsApp msg</div></div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-node"><div class="flow-label">Render API</div><div class="flow-name">Webhook → query Supabase</div></div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-node"><div class="flow-label">Groq AI</div><div class="flow-name">Sarah composes reply</div></div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-node"><div class="flow-label">Customer</div><div class="flow-name">"Yes, KSh 250. 8 in stock."</div></div>
-    </div>
-
-    <p><strong>Auto Daily Briefing Flow</strong></p>
-    <div class="flow">
-      <div class="flow-node"><div class="flow-label">Admin</div><div class="flow-name">Opens dashboard</div></div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-node"><div class="flow-label">Browser JS</div><div class="flow-name">Compiles yesterday's data</div></div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-node"><div class="flow-label">Groq API</div><div class="flow-name">Generates 3-line briefing</div></div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-node"><div class="flow-label">Dashboard</div><div class="flow-name">Displays at top of screen</div></div>
-    </div>
-  </div>
-
-  <hr class="rule">
-
-  <!-- INFRASTRUCTURE MAP -->
-  <div class="section">
-    <div class="section-header">
-      <span class="section-num">05</span>
-      <h2 class="section-title">Infrastructure <em>Map</em></h2>
-    </div>
-
-    <p>This shows how K-Tech and CloudOven share providers without mixing systems.</p>
-
-    <div class="conn-grid">
-      <div class="conn-card">
-        <div class="conn-from">Supabase Account</div>
-        <div class="conn-name">cloudoven-db <span class="arrow">≠</span> ktech-db</div>
-        <div class="conn-detail">Two separate projects on the same Supabase account.<br>Completely isolated databases, auth systems, RLS rules.<br>No data crosses between them. Ever.</div>
-      </div>
-      <div class="conn-card">
-        <div class="conn-from">Vercel Account</div>
-        <div class="conn-name">cloudoven.vercel.app <span class="arrow">≠</span> ktech-os.vercel.app</div>
-        <div class="conn-detail">Two separate Vercel deployments, two GitHub repos.<br>Same account, same billing, zero interference.<br>Each has own env variables and build settings.</div>
-      </div>
-      <div class="conn-card">
-        <div class="conn-from">Render Account</div>
-        <div class="conn-name">cloudoven-api <span class="arrow">≠</span> ktech-api</div>
-        <div class="conn-detail">Two separate Web Services on Render.<br>K-Tech backend handles: WhatsApp webhooks, Daraja callbacks, Groq proxy, cron jobs.<br>Free tier: 750 hrs/month each.</div>
-      </div>
-      <div class="conn-card">
-        <div class="conn-from">Twilio Account</div>
-        <div class="conn-name">CloudOven number <span class="arrow">+</span> K-Tech number</div>
-        <div class="conn-detail">Same Twilio account, different WhatsApp numbers.<br>Each number has its own webhook URL (pointing to respective Render services).<br>Sarah's brain (Zovrix) is configured per-instance.</div>
-      </div>
-    </div>
-
-    <div class="decision">
-      <div class="decision-label">⚡ Key Decision</div>
-      <p>The Groq API key lives on the Render backend — not in the browser. In the MVP (offline HTML file), the key is in the browser temporarily. The moment Supabase + Render are connected, the key moves server-side. This is non-negotiable for production security.</p>
-    </div>
-  </div>
-
-  <hr class="rule">
-
-  <!-- ROADMAP -->
-  <div class="section">
-    <div class="section-header">
-      <span class="section-num">06</span>
-      <h2 class="section-title">The <em>Roadmap</em></h2>
-    </div>
-
-    <div class="roadmap">
-      <div class="phase p0">
-        <div class="phase-label phase-0">Phase 0 — MVP · This Week</div>
-        <div class="phase-title">Shop Opens. System Works.</div>
-        <div class="phase-items">
-          ✓ Volta OS HTML file — POS, Inventory, Transactions, Reports<br>
-          ✓ Switch AI to Groq (Llama 3.3 70B — free)<br>
-          ✓ Auto daily briefing on dashboard open<br>
-          ✓ Low stock alerts + restock planner<br>
-          ✓ WhatsApp receipt link after sale<br>
-          ✓ End-of-day printable report<br>
-          ✓ Auto transaction categorisation (Groq)<br>
-          ✓ Smart price suggestion when adding items (Groq)<br>
-          ✓ Sales velocity / fast movers dashboard panel<br>
-          ✓ Debt / credit sale tracker<br>
-          ✓ Recurring expense reminders<br>
-          ✓ 180+ electronics items pre-loaded<br>
-          ✓ Data backed up via JSON export
-        </div>
-      </div>
-
-      <div class="phase p1">
-        <div class="phase-label phase-1">Phase 1 — Week 2–4 · After First Stock Purchase</div>
-        <div class="phase-title">Connected. Multi-Device. Customer-Facing.</div>
-        <div class="phase-items">
-          → Supabase integration (cloud sync, offline fallback)<br>
-          → Staff PIN login + role-based access<br>
-          → PWA — install on Android phone, works offline<br>
-          → Sarah (WhatsApp bot) — K-Tech instance live<br>
-          → Customer-facing catalogue (Vercel static page)<br>
-          → Camera barcode scanning into POS<br>
-          → Vercel deployment — accessible anywhere<br>
-          → Groq API key moves server-side (Render)<br>
-          → Auto-generated customer WhatsApp receipts (via Sarah)
-        </div>
-      </div>
-
-      <div class="phase p2">
-        <div class="phase-label phase-2">Phase 2 — Month 2–3 · Revenue Generating</div>
-        <div class="phase-title">Automated Operations. Payment Confirmed.</div>
-        <div class="phase-items">
-          → M-Pesa Daraja STK Push confirmation<br>
-          → Auto monthly P&L email to investor (Resend free)<br>
-          → Low stock SMS to owner (Africa's Talking)<br>
-          → Supplier price CSV import + comparison tool<br>
-          → Customer loyalty tracking<br>
-          → Sales forecast (Groq + historical data)<br>
-          → Custom domain — ktechke.com
-        </div>
-      </div>
-
-      <div class="phase p3">
-        <div class="phase-label phase-3">Phase 3 — Month 4+ · Scale</div>
-        <div class="phase-title">The Industrial Mold. Broken.</div>
-        <div class="phase-items">
-          → Second branch support (branch_id on all tables)<br>
-          → Investor dashboard (read-only Supabase view)<br>
-          → Automated reorder to supplier (WhatsApp to supplier contact)<br>
-          → Customer pre-order and reservation system<br>
-          → Annual tax-ready P&L export (KRA format)<br>
-          → Franchise template — license Volta OS to other shops
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <hr class="rule">
-
-  <!-- COST REALITY -->
-  <div class="section">
-    <div class="section-header">
-      <span class="section-num">07</span>
-      <h2 class="section-title">True <em>Cost</em> Table</h2>
-    </div>
-
-    <p>This is the honest cost of the entire stack — Phase 0 through Phase 2 — presented to the investor without flattery.</p>
-
-    <table class="cost-table">
-      <thead>
-        <tr><th>Service</th><th>Purpose</th><th>Free Limit</th><th>Monthly Cost Now</th><th>Paid Trigger</th></tr>
-      </thead>
-      <tbody>
-        <tr><td>Supabase</td><td>Database + Auth + Realtime</td><td>500MB · 50k rows</td><td class="cost-0">KSh 0</td><td>~10,000 customers or 500MB data</td></tr>
-        <tr><td>Vercel</td><td>Frontend hosting + CDN</td><td>100GB bandwidth</td><td class="cost-0">KSh 0</td><td>Enterprise traffic</td></tr>
-        <tr><td>Render</td><td>Backend API + webhooks</td><td>750 hrs/month</td><td class="cost-0">KSh 0</td><td>Always-on service needed</td></tr>
-        <tr><td>Groq</td><td>AI engine (Llama 3.3 70B)</td><td>14,400 req/day</td><td class="cost-0">KSh 0</td><td>~400 AI calls/day sustained</td></tr>
-        <tr><td>Twilio (K-Tech number)</td><td>WhatsApp business number</td><td>Sandbox free</td><td class="cost-low">~$5–15/mo when live</td><td>Going live on WhatsApp Business</td></tr>
-        <tr><td>Africa's Talking</td><td>SMS alerts to owner</td><td>Free sandbox</td><td class="cost-low">~KSh 80/mo (100 SMS)</td><td>When owner wants SMS alerts</td></tr>
-        <tr><td>Safaricom Daraja</td><td>M-Pesa confirmation</td><td>Free to register</td><td class="cost-0">KSh 0</td><td>Per-transaction (negligible)</td></tr>
-        <tr><td>Resend</td><td>Monthly P&L email</td><td>3,000 emails/mo</td><td class="cost-0">KSh 0</td><td>Never (1 email/month)</td></tr>
-        <tr><td>GitHub</td><td>Code + CI/CD</td><td>Unlimited public</td><td class="cost-0">KSh 0</td><td>Private repos with teams</td></tr>
-        <tr><td>Custom domain (ktechke.com)</td><td>Professional URL</td><td>—</td><td class="cost-low">~KSh 1,500/yr</td><td>Phase 2 — optional</td></tr>
-      </tbody>
-    </table>
-
-    <div class="decision">
-      <div class="decision-label">📊 Investor Summary</div>
-      <p><strong>Phase 0 (MVP, this week):</strong> KSh 0. Zero. The shop opens with a full technology stack at no monthly cost.</p>
-      <p><strong>Phase 1 (Weeks 2–4):</strong> KSh 0, unless WhatsApp bot goes live on a paid Twilio number (~$5–15/mo = KSh 650–1,950/mo).</p>
-      <p><strong>Phase 2 (Month 2–3):</strong> Maximum KSh 2,500–4,000/month for the entire stack including SMS, WhatsApp, and domain. This is less than one day's electricity bill for most small businesses.</p>
-      <p>For context: if Sarah handles 100 customer inquiries per month that would have required human time, the ROI is immediate. If she converts 10 of those to sales of even KSh 500 each, the system has paid for itself 10× over.</p>
-    </div>
-  </div>
-
-  <hr class="rule">
-
-  <!-- WHAT WE BUILD NEXT -->
-  <div class="section">
-    <div class="section-header">
-      <span class="section-num">08</span>
-      <h2 class="section-title">What We Build <em>Next</em></h2>
-    </div>
-
-    <p class="lead">The MVP Volta OS file needs these changes before the shop opens next week:</p>
-
-    <div class="principle-grid">
-      <div class="principle">
-        <div class="principle-icon">🔄</div>
-        <div class="principle-title">1. Switch to Groq</div>
-        <div class="principle-text">Replace all Anthropic API calls with Groq's OpenAI-compatible endpoint. Model: llama-3.3-70b-versatile. Same intelligence, 14,400 free calls/day.</div>
-      </div>
-      <div class="principle">
-        <div class="principle-icon">🌅</div>
-        <div class="principle-title">2. Auto Daily Briefing</div>
-        <div class="principle-text">On dashboard load, if no briefing today: pull yesterday's data, send to Groq, render a 3-line morning brief. Cached in localStorage so it only fires once per day.</div>
-      </div>
-      <div class="principle">
-        <div class="principle-icon">📈</div>
-        <div class="principle-title">3. Fast Movers Panel</div>
-        <div class="principle-text">Dashboard shows top 5 selling items (by units and by revenue), bottom 5 dead stock items. Updates every time the dashboard loads.</div>
-      </div>
-      <div class="principle">
-        <div class="principle-icon">💬</div>
-        <div class="principle-title">4. WhatsApp Receipt</div>
-        <div class="principle-text">After POS checkout, receipt modal has a "Send via WhatsApp" button. Opens wa.me with pre-filled receipt text. Customer receives on their phone instantly.</div>
-      </div>
-      <div class="principle">
-        <div class="principle-icon">🏷</div>
-        <div class="principle-title">5. Smart Pricing</div>
-        <div class="principle-text">In Add Item form: type buying price, Groq suggests a selling price based on your shop's average margin. One click to accept.</div>
-      </div>
-      <div class="principle">
-        <div class="principle-icon">🖨</div>
-        <div class="principle-title">6. End-of-Day Report</div>
-        <div class="principle-text">One button in dashboard: generates a formatted daily closing summary — sales, items sold, expenses, cash to take to bank. Print-ready.</div>
-      </div>
-    </div>
-
-    <p>These six additions complete the MVP. Everything else is Phase 1 and beyond. The rule is: <strong>the shop opens first, the tech grows with it.</strong></p>
-  </div>
-
-  <hr class="rule">
-
-  <!-- CLOSING -->
-  <div class="section">
-    <div class="section-header">
-      <span class="section-num">09</span>
-      <h2 class="section-title">Final <em>Note</em></h2>
-    </div>
-
-    <p class="lead">K-Tech is not just an electronics shop. It is the first node in a network — a proof of concept that any physical retail business in Kenya can be run with the same sophistication as a funded tech startup, at almost zero cost, from day one.</p>
-
-    <p>The remodeling finishes today. The stock purchase is next week. The technology is ready. The only thing left is to begin.</p>
-
-    <p>This document should be reviewed with the investor not as a pitch, but as a shared understanding. Every item here is buildable. Every cost here is real. Every phase here has a clear trigger — a business event that justifies the next investment of time or money.</p>
-
-    <div class="quote">
-      <p>Break the industrial mold — not by moving fast and breaking things, but by building things that do not break.</p>
-    </div>
-  </div>
-
-  <footer>
-    <div class="footer-logo">⚡ K-TECH ELECTRONICS</div>
-    <div class="footer-meta">
-      Tech Architecture v1.0 · April 2026<br>
-      Confidential — Founder + Investor Use<br>
-      Built on CloudOven Infrastructure
-    </div>
-  </footer>
-
 </div>
+<button class="fab" onclick="goto('pos')" title="Open POS">
+  <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+</button>
+
+<main>
+
+<!-- ══════════════════ DASHBOARD ══════════════════ -->
+<section id="sec-dashboard" class="section active">
+  <div class="flex-between" style="margin-bottom:24px">
+    <div>
+      <div class="eyebrow">Financial Overview</div>
+      <h1 id="dash-shopname" style="font-size:clamp(20px,4vw,38px);font-weight:600;letter-spacing:-.5px">My Electronics Shop</h1>
+    </div>
+    <div style="text-align:right">
+      <div id="dash-date" style="font-family:var(--mono);font-size:11px;color:var(--text2)"></div>
+      <div id="dash-days" style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-top:2px"></div>
+    </div>
+  </div>
+  <div id="dash-alert"></div>
+
+  <!-- Daily AI Briefing -->
+  <div id="dash-briefing" style="display:none;margin-bottom:12px">
+    <div class="card" style="border-color:#A855F730;background:linear-gradient(135deg,#111520,#151A25)">
+      <div style="display:flex;align-items:flex-start;gap:12px">
+        <div style="font-size:18px;flex-shrink:0;margin-top:2px">⚡</div>
+        <div style="flex:1">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:6px">
+            <div class="card-title" style="margin:0;color:var(--purple)">Morning Briefing</div>
+            <div id="dash-briefing-date" style="font-family:var(--mono);font-size:8px;color:var(--text4)"></div>
+          </div>
+          <div id="dash-briefing-text" style="font-size:13px;color:var(--text2);line-height:1.85"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="dash-briefing-loading" style="display:none;margin-bottom:12px">
+    <div class="card" style="border-color:#A855F720">
+      <div class="loader-row"><div class="loader-circle spin"></div><span style="color:var(--text3)">Generating morning briefing...</span></div>
+    </div>
+  </div>
+
+  <!-- Capital Card -->
+  <div class="card" style="margin-bottom:12px;border-color:#00D4FF20">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px">
+      <div>
+        <div class="card-title" style="margin-bottom:6px">Capital Balance</div>
+        <div id="dash-capital" class="ticker text-green">KSh 0</div>
+        <div id="dash-capital-sub" style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-top:5px"></div>
+      </div>
+      <div style="display:flex;gap:20px;flex-wrap:wrap">
+        <div><div style="font-family:var(--mono);font-size:8px;color:var(--text3);letter-spacing:2px;margin-bottom:3px">REVENUE</div><div id="dash-rev" style="font-family:var(--mono);font-size:17px;color:var(--green)">KSh 0</div></div>
+        <div><div style="font-family:var(--mono);font-size:8px;color:var(--text3);letter-spacing:2px;margin-bottom:3px">OUTFLOWS</div><div id="dash-out" style="font-family:var(--mono);font-size:17px;color:var(--red)">KSh 0</div></div>
+        <div><div style="font-family:var(--mono);font-size:8px;color:var(--text3);letter-spacing:2px;margin-bottom:3px">NET PROFIT</div><div id="dash-net" style="font-family:var(--mono);font-size:17px;color:var(--amber)">KSh 0</div></div>
+        <div><div style="font-family:var(--mono);font-size:8px;color:var(--text3);letter-spacing:2px;margin-bottom:3px">TODAY</div><div id="dash-today" style="font-family:var(--mono);font-size:17px;color:var(--cyan)">KSh 0</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stat-grid" id="dash-stats"></div>
+
+  <!-- Charts -->
+  <div class="chart-grid">
+    <div class="chart-card wide">
+      <div class="card-title">Revenue vs Outflows — Last 30 Days</div>
+      <canvas id="chartRevExp"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="card-title">Expense Categories</div>
+      <canvas id="chartExpCat"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="card-title">Monthly Net Profit</div>
+      <canvas id="chartMonthly"></canvas>
+    </div>
+  </div>
+
+  <!-- Bars -->
+  <div class="card" style="margin-bottom:12px">
+    <div class="card-title">Capital Utilisation</div>
+    <div id="dash-bars"></div>
+  </div>
+
+  <!-- Fast Movers + Dead Stock -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px" id="dash-velocity-grid">
+    <div class="card">
+      <div class="card-title" style="color:var(--green)">🚀 Fast Movers (Top 5)</div>
+      <div id="dash-fast-movers"><div class="empty" style="padding:12px">No sales data yet.</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color:var(--amber)">🪦 Dead Stock (Bottom 5)</div>
+      <div id="dash-dead-stock"><div class="empty" style="padding:12px">No sales data yet.</div></div>
+    </div>
+  </div>
+
+  <!-- Low Stock Alert -->
+  <div id="dash-lowstock"></div>
+
+  <!-- Recent -->
+  <div class="card">
+    <div class="flex-between" style="margin-bottom:12px">
+      <div class="card-title" style="margin:0">Recent Transactions</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost btn-sm" onclick="printEndOfDay()">🖨 End-of-Day Report</button>
+        <button class="btn btn-ghost btn-sm" onclick="goto('history')">View All →</button>
+      </div>
+    </div>
+    <div id="dash-recent"></div>
+  </div>
+</section>
+
+<!-- ══════════════════ POS ══════════════════ -->
+<section id="sec-pos" class="section">
+  <div class="eyebrow">Point of Sale</div>
+  <div class="flex-between" style="margin-bottom:16px">
+    <h2 style="font-size:24px;font-weight:600;letter-spacing:-.5px">Quick Sale</h2>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-ghost btn-sm" onclick="togglePosView()">⊞ Grid / List</button>
+      <button class="btn btn-ghost btn-sm" onclick="goto('inventory')">Manage Stock →</button>
+    </div>
+  </div>
+  <div id="pos-alert"></div>
+  <div class="pos-layout">
+    <div>
+      <div class="pos-search">
+        <input type="text" id="pos-search" placeholder="🔍  Search by item name or category..." oninput="renderPOSItems()" style="width:100%;margin-bottom:8px">
+        <div id="pos-cats" style="display:flex;gap:6px;flex-wrap:wrap;overflow-x:auto;padding-bottom:4px"></div>
+      </div>
+      <div id="pos-items" class="item-grid"></div>
+    </div>
+    <div>
+      <div class="pos-cart" id="pos-cart-panel">
+        <div class="card">
+          <div class="flex-between" style="margin-bottom:12px">
+            <div class="card-title" style="margin:0">Current Sale</div>
+            <button class="btn btn-xs btn-ghost" onclick="clearCart()">Clear</button>
+          </div>
+          <div id="cart-items"><div class="empty" style="padding:20px">No items added yet.</div></div>
+          <div class="pos-total-bar" id="pos-totals" style="display:none">
+            <div class="pos-total-row"><span>Subtotal</span><span id="pos-subtotal">KSh 0</span></div>
+            <div class="pos-total-row"><span>Discount</span><span id="pos-disc-show" style="color:var(--red)">KSh 0</span></div>
+            <div class="pos-total-row big"><span>TOTAL</span><span id="pos-total-big" class="text-cyan">KSh 0</span></div>
+          </div>
+          <div style="margin-top:12px">
+            <div class="form-grid" style="grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+              <div><label>Discount (KSh)</label><input type="number" id="pos-discount" value="0" min="0" oninput="updateCartTotals()"></div>
+              <div><label>Payment Method</label>
+                <select id="pos-payment">
+                  <option>Cash</option><option>M-Pesa</option><option>Credit Card</option><option>Bank Transfer</option><option>Credit (Debt)</option>
+                </select>
+              </div>
+            </div>
+            <div style="margin-bottom:8px"><label>Customer (optional)</label><input type="text" id="pos-customer" placeholder="Customer name or phone..."></div>
+            <div style="margin-bottom:8px"><label>Notes</label><input type="text" id="pos-notes" placeholder="Receipt notes..."></div>
+            <button class="btn btn-cyan" style="width:100%;justify-content:center;padding:14px" id="pos-checkout-btn" onclick="completeSale()">
+              ⚡ Complete Sale
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ INVENTORY ══════════════════ -->
+<section id="sec-inventory" class="section">
+  <div class="eyebrow">Stock Management</div>
+  <div class="flex-between" style="margin-bottom:16px">
+    <h2 class="page-title" style="margin:0">Inventory</h2>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-cyan btn-sm" onclick="openAddItemModal()">＋ Add Item</button>
+      <button class="btn btn-ghost btn-sm" onclick="exportInventoryCSV()">↓ Export CSV</button>
+    </div>
+  </div>
+  <div id="inv-stats" class="stat-grid" style="margin-bottom:12px"></div>
+  <div class="filter-bar">
+    <input type="text" id="inv-search" placeholder="🔍 Search..." oninput="renderInventory()" style="flex:1;min-width:140px">
+    <select id="inv-cat" onchange="renderInventory()">
+      <option value="">All Categories</option>
+    </select>
+    <select id="inv-sort" onchange="renderInventory()">
+      <option value="">Sort by...</option>
+      <option value="name">Name A-Z</option>
+      <option value="stock_asc">Stock Low→High</option>
+      <option value="stock_desc">Stock High→Low</option>
+      <option value="margin_desc">Margin High→Low</option>
+      <option value="value_desc">Value High→Low</option>
+    </select>
+    <button class="btn btn-ghost btn-sm" id="inv-low-btn" onclick="toggleLowStock()">🔴 Low Stock</button>
+  </div>
+  <div class="card" style="padding:0;overflow:hidden">
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th>Item Name</th><th>Category</th><th>Buy</th><th>Sell</th><th>Margin</th><th>Qty</th><th>Stock Value</th><th>Status</th><th></th>
+        </tr></thead>
+        <tbody id="inv-tbody"></tbody>
+      </table>
+    </div>
+    <div id="inv-empty" class="empty" style="display:none">No items match your filter.</div>
+  </div>
+  <div id="inv-footer" style="margin-top:10px;font-family:var(--mono);font-size:10px;color:var(--text3)"></div>
+</section>
+
+<!-- ══════════════════ ADD ENTRY ══════════════════ -->
+<section id="sec-add" class="section">
+  <div class="eyebrow">Finance Entry</div>
+  <h2 class="page-title">Log Transaction</h2>
+  <div id="add-alert"></div>
+  <div class="card">
+    <div class="form-grid">
+      <div>
+        <label>Transaction Type</label>
+        <select id="txn-type" onchange="onTypeChange()">
+          <option value="sale">💰 Sales Revenue (manual)</option>
+          <option value="service">🛠 Service / Repair Income</option>
+          <option value="purchase">📦 Stock Purchase</option>
+          <option value="expense">🧾 Operating Expense</option>
+          <option value="capital">🏦 Capital Injection</option>
+          <option value="withdrawal">💸 Owner Withdrawal</option>
+        </select>
+      </div>
+      <div><label>Category</label><select id="txn-cat"></select></div>
+      <div><label>Date</label><input type="date" id="txn-date"></div>
+      <div><label>Amount (KSh)</label><input type="number" id="txn-amount" placeholder="0" min="0"></div>
+      <div class="full">
+        <label>Description <span id="txn-autocat-hint" style="color:var(--cyan);font-size:8px;display:none">⚡ Category auto-set</span></label>
+        <input type="text" id="txn-desc" placeholder="Describe the transaction..." onblur="autoCategorise()">
+      </div>
+      <div class="full"><label>Notes (optional)</label><textarea id="txn-note" placeholder="Supplier, receipt number, extra details..."></textarea></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">
+      <button class="btn btn-cyan" onclick="addTransaction()">Log Entry</button>
+      <button class="btn btn-ghost" onclick="clearForm()">Clear</button>
+    </div>
+  </div>
+  <div class="card mt14">
+    <div class="card-title">Entry Guide</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px">
+      <div class="card2"><div style="font-family:var(--mono);font-size:8px;color:var(--green);letter-spacing:2px;margin-bottom:4px">SALES REVENUE</div><div style="font-size:11px;color:var(--text3);line-height:1.6">Daily/per-sale cash from selling electronics, bulbs, cables etc.</div></div>
+      <div class="card2"><div style="font-family:var(--mono);font-size:8px;color:var(--purple);letter-spacing:2px;margin-bottom:4px">SERVICE INCOME</div><div style="font-size:11px;color:var(--text3);line-height:1.6">Repair work, installations, consultations, wiring jobs</div></div>
+      <div class="card2"><div style="font-family:var(--mono);font-size:8px;color:var(--blue);letter-spacing:2px;margin-bottom:4px">STOCK PURCHASE</div><div style="font-size:11px;color:var(--text3);line-height:1.6">Buying MCBs, cables, bulbs, fittings from suppliers</div></div>
+      <div class="card2"><div style="font-family:var(--mono);font-size:8px;color:var(--red);letter-spacing:2px;margin-bottom:4px">OPERATING EXPENSE</div><div style="font-size:11px;color:var(--text3);line-height:1.6">Rent, electricity, water, staff, transport, packaging</div></div>
+      <div class="card2"><div style="font-family:var(--mono);font-size:8px;color:var(--amber);letter-spacing:2px;margin-bottom:4px">CAPITAL INJECTION</div><div style="font-size:11px;color:var(--text3);line-height:1.6">Adding money from savings, loans, SACCO, or family</div></div>
+      <div class="card2"><div style="font-family:var(--mono);font-size:8px;color:var(--text3);letter-spacing:2px;margin-bottom:4px">WITHDRAWAL</div><div style="font-size:11px;color:var(--text3);line-height:1.6">Taking money out as salary or personal use</div></div>
+    </div>
+  </div>
+  <div class="card mt14">
+    <div class="card-title">Last 5 Entries</div>
+    <div id="add-recent"></div>
+  </div>
+</section>
+
+<!-- ══════════════════ HISTORY ══════════════════ -->
+<section id="sec-history" class="section">
+  <div class="eyebrow">Transaction Log</div>
+  <h2 class="page-title">Full History</h2>
+  <div class="filter-bar">
+    <input type="text" id="hist-q" placeholder="🔍 Search..." oninput="renderHistory()" style="flex:1;min-width:140px">
+    <select id="hist-type" onchange="renderHistory()">
+      <option value="">All Types</option>
+      <option value="sale">Sales</option><option value="service">Service</option>
+      <option value="purchase">Purchases</option><option value="expense">Expenses</option>
+      <option value="capital">Capital</option><option value="withdrawal">Withdrawals</option>
+    </select>
+    <input type="month" id="hist-month" onchange="renderHistory()" style="width:auto;padding:7px 10px">
+    <button class="btn btn-ghost btn-sm" onclick="clearHistFilters()">Clear</button>
+  </div>
+  <div class="card" style="padding:0;overflow:hidden">
+    <div class="tbl-wrap">
+      <table><thead><tr><th>Date</th><th>Type</th><th>Category</th><th>Description</th><th style="text-align:right">Amount</th><th></th></tr></thead>
+      <tbody id="hist-tbody"></tbody></table>
+    </div>
+    <div id="hist-empty" class="empty" style="display:none">No transactions found.</div>
+  </div>
+  <div id="hist-summary" style="margin-top:12px"></div>
+</section>
+
+<!-- ══════════════════ REPORTS ══════════════════ -->
+<section id="sec-reports" class="section">
+  <div class="eyebrow">Financial Reports</div>
+  <h2 class="page-title">Reports</h2>
+  <div class="filter-bar" style="margin-bottom:20px">
+    <span style="font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:1px">Period:</span>
+    <select id="rep-period" onchange="renderReports()" style="width:auto">
+      <option value="today">Today</option>
+      <option value="this_week">This Week</option>
+      <option value="this_month" selected>This Month</option>
+      <option value="last_month">Last Month</option>
+      <option value="last_30">Last 30 Days</option>
+      <option value="last_90">Last 90 Days</option>
+      <option value="all">All Time</option>
+    </select>
+  </div>
+  <div id="rep-content"></div>
+</section>
+
+<!-- ══════════════════ RESTOCK ══════════════════ -->
+<section id="sec-restock" class="section">
+  <div class="eyebrow">Procurement</div>
+  <h2 class="page-title">Restock Planner</h2>
+  <div id="restock-alert"></div>
+  <div class="card" style="margin-bottom:12px">
+    <div class="card-title">Quick Restock</div>
+    <div class="form-grid">
+      <div><label>Item</label><select id="rs-item" onchange="prefillRestock()"></select></div>
+      <div><label>Qty to Restock</label><input type="number" id="rs-qty" placeholder="20" min="1"></div>
+      <div><label>New Buying Price (KSh)</label><input type="number" id="rs-buy" placeholder="Leave blank to keep current"></div>
+      <div><label>New Selling Price (KSh)</label><input type="number" id="rs-sell" placeholder="Leave blank to keep current"></div>
+      <div><label>Supplier</label><input type="text" id="rs-supplier" placeholder="e.g. Gikomba, Kamukunji..."></div>
+      <div><label>Date Restocked</label><input type="date" id="rs-date"></div>
+      <div class="full"><label>Notes</label><input type="text" id="rs-notes" placeholder="Batch number, invoice reference..."></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+      <button class="btn btn-cyan" onclick="doRestock()">⚡ Restock & Log Purchase</button>
+      <button class="btn btn-ghost" onclick="clearRestockForm()">Clear</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Low Stock Items (Qty ≤ Reorder Point)</div>
+    <div id="restock-list"></div>
+  </div>
+  <div class="card mt14">
+    <div class="card-title">All Items — Stock Levels</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Item</th><th>Category</th><th>Qty</th><th>Reorder At</th><th>Status</th><th>Buy Price</th><th>Action</th></tr></thead>
+        <tbody id="restock-all-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ ASK AI ══════════════════ -->
+<section id="sec-ask" class="section">
+  <div class="eyebrow">Conversational Intelligence</div>
+  <h2 class="page-title">Ask Your Shop</h2>
+  <div id="ask-nokey" style="display:none" class="alert alert-warn">No Groq API key found. Go to <strong style="cursor:pointer;text-decoration:underline" onclick="goto('settings')">Settings → Groq API Key</strong> to add yours. Free at console.groq.com.</div>
+  <div class="chat-pills" id="ask-pills">
+    <button class="pill" onclick="sendPill(this)">What is my net profit?</button>
+    <button class="pill" onclick="sendPill(this)">Which items have the highest margin?</button>
+    <button class="pill" onclick="sendPill(this)">How much stock is low?</button>
+    <button class="pill" onclick="sendPill(this)">What's my best-selling category?</button>
+    <button class="pill" onclick="sendPill(this)">How much did I spend on expenses?</button>
+    <button class="pill" onclick="sendPill(this)">What were today's sales?</button>
+    <button class="pill" onclick="sendPill(this)">Compare this month vs last month</button>
+    <button class="pill" onclick="sendPill(this)">Which items should I restock urgently?</button>
+    <button class="pill" onclick="sendPill(this)">What is my gross margin?</button>
+    <button class="pill" onclick="sendPill(this)">Am I making or losing money?</button>
+    <button class="pill" onclick="sendPill(this)">How much capital do I have left?</button>
+    <button class="pill" onclick="sendPill(this)">Summarise my shop finances</button>
+  </div>
+  <div class="card" style="padding:0;overflow:hidden">
+    <div class="chat-wrap" style="padding:18px">
+      <div class="chat-hist" id="ask-hist">
+        <div class="chat-empty" id="ask-empty">
+          <div class="chat-empty-icon">⚡</div>
+          <div class="chat-empty-title">Ask anything about your electronics shop</div>
+          <div class="chat-empty-sub">Full inventory + transaction history as context.<br>Ask in plain English. Get real answers.</div>
+        </div>
+      </div>
+      <div class="chat-input-row">
+        <textarea class="chat-input" id="ask-input" placeholder="e.g. Which MCB sizes are running low?" rows="1" onkeydown="askKeydown(event)" oninput="autoGrow(this)"></textarea>
+        <button class="chat-send-btn" id="ask-send" onclick="doAsk()" title="Send">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+  <div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+    <span style="font-family:var(--mono);font-size:8px;color:var(--text4)">Powered by Groq (Llama 3.3 70B) · Free · Data stays in your browser</span>
+    <button class="btn btn-ghost btn-sm" onclick="clearChat()">Clear Chat</button>
+  </div>
+</section>
+
+<!-- ══════════════════ INSIGHTS ══════════════════ -->
+<section id="sec-insights" class="section">
+  <div class="eyebrow">Intelligence Engine</div>
+  <h2 class="page-title">AI Insights</h2>
+  <div id="ins-alert"></div>
+  <div class="card">
+    <div class="form-grid">
+      <div><label>Period</label>
+        <select id="ins-period">
+          <option value="30">Last 30 Days</option>
+          <option value="90">Last 90 Days</option>
+          <option value="180">Last 6 Months</option>
+          <option value="9999">All Time</option>
+        </select>
+      </div>
+      <div><label>Focus</label>
+        <select id="ins-focus">
+          <option value="general">General Health</option>
+          <option value="expenses">Expense Reduction</option>
+          <option value="revenue">Revenue Growth</option>
+          <option value="inventory">Inventory Optimisation</option>
+          <option value="cashflow">Cash Flow</option>
+          <option value="profitability">Profitability Deep Dive</option>
+          <option value="pricing">Pricing Strategy</option>
+        </select>
+      </div>
+      <div class="full"><label>Custom Question</label><input type="text" id="ins-q" placeholder="e.g. Should I expand into solar products? What's my burn rate?"></div>
+    </div>
+    <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-cyan" onclick="genInsights()">⚡ Generate Insights</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('ins-output').innerHTML=''">Clear</button>
+    </div>
+  </div>
+  <div id="ins-output" style="margin-top:12px"></div>
+  <div class="card mt14" style="border-color:var(--cyan-dim)">
+    <div class="card-title">Setup</div>
+    <p style="font-size:12px;color:var(--text3);line-height:1.8">
+      AI Insights use <strong style="color:var(--text2)">Groq (Llama 3.3 70B — free)</strong>. Add your Groq API key in
+      <strong style="color:var(--cyan);cursor:pointer" onclick="goto('settings')">Settings → Groq API Key</strong>.
+      Get a free key (no credit card) at <strong style="color:var(--cyan)">console.groq.com</strong>. Your key is stored only in this browser.
+    </p>
+  </div>
+</section>
+
+<!-- ══════════════════ CUSTOMERS ══════════════════ -->
+<section id="sec-customers" class="section">
+  <div class="eyebrow">Customer Management</div>
+  <div class="flex-between" style="margin-bottom:16px">
+    <h2 class="page-title" style="margin:0">Customers</h2>
+    <button class="btn btn-cyan btn-sm" onclick="openAddCustomerModal()">＋ Add Customer</button>
+  </div>
+  <div id="cust-stats" class="stat-grid" style="margin-bottom:12px"></div>
+  <div class="filter-bar">
+    <input type="text" id="cust-search" placeholder="🔍 Search customers..." oninput="renderCustomers()" style="flex:1;min-width:140px">
+  </div>
+  <div class="card" style="padding:0;overflow:hidden">
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Name</th><th>Phone</th><th>Total Purchases</th><th>Last Purchase</th><th>Outstanding</th><th></th></tr></thead>
+        <tbody id="cust-tbody"></tbody>
+      </table>
+    </div>
+    <div id="cust-empty" class="empty" style="display:none">No customers yet.</div>
+  </div>
+</section>
+
+<!-- ══════════════════ SETTINGS ══════════════════ -->
+<section id="sec-settings" class="section">
+  <div class="eyebrow">Configuration</div>
+  <h2 class="page-title">Settings</h2>
+  <div id="set-alert"></div>
+
+  <div class="set-sec">
+    <h3>Shop Details</h3>
+    <div class="form-grid">
+      <div><label>Shop Name</label><input type="text" id="set-name" placeholder="My Electronics Shop"></div>
+      <div><label>Starting Capital (KSh)</label><input type="number" id="set-capital" placeholder="200000" min="0"></div>
+      <div><label>Start Date</label><input type="date" id="set-startdate"></div>
+      <div><label>Location</label><input type="text" id="set-location" placeholder="Nairobi, Kenya"></div>
+      <div><label>Owner Name</label><input type="text" id="set-owner" placeholder="Your name"></div>
+      <div><label>Default Reorder Qty</label><input type="number" id="set-reorder" placeholder="5" min="1"></div>
+    </div>
+    <button class="btn btn-cyan" style="margin-top:14px" onclick="saveSettings()">Save Settings</button>
+  </div>
+
+  <div class="set-sec">
+    <h3>Groq API Key — AI Engine (Free)</h3>
+    <div><label>Groq API Key</label><input type="password" id="set-apikey" placeholder="gsk_..."></div>
+    <p style="font-family:var(--mono);font-size:9px;color:var(--text3);line-height:1.8;margin:10px 0">
+      Powers Ask AI, Insights, Daily Briefing, Smart Pricing, and Auto-Categorisation. Free tier: 14,400 requests/day. Get your key at <strong style="color:var(--cyan)">console.groq.com</strong> — no credit card needed.
+    </p>
+    <button class="btn btn-cyan" onclick="saveApiKey()">Save Groq Key</button>
+  </div>
+
+  <div class="set-sec">
+    <h3>Load Your Inventory</h3>
+    <p style="font-size:12px;color:var(--text3);line-height:1.7;margin-bottom:14px">Click below to load your full electronics stock list (the inventory you provided) as the starting inventory. This will not overwrite your financial transactions.</p>
+    <button class="btn btn-cyan" onclick="loadDefaultInventory()">⚡ Load Default Electronics Inventory</button>
+    <span id="inv-load-status" style="font-family:var(--mono);font-size:10px;color:var(--green);margin-left:12px"></span>
+  </div>
+
+  <div class="set-sec">
+    <h3>Data Management</h3>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+      <button class="btn btn-ghost" onclick="exportData()">↓ Export JSON</button>
+      <label class="btn btn-ghost" style="cursor:pointer">↑ Import JSON<input type="file" accept=".json" onchange="importData(event)"></label>
+      <button class="btn btn-danger" onclick="resetData()">Reset All Data</button>
+    </div>
+    <p style="font-family:var(--mono);font-size:9px;color:var(--text3);line-height:1.8">Export saves all transactions, inventory, customers and settings. Import restores from a backup. Reset permanently deletes everything.</p>
+  </div>
+</section>
+
+</main>
+
+<!-- MODALS -->
+<div id="modal-additem" class="modal-bg">
+  <div class="modal">
+    <div class="modal-title" id="modal-additem-title">Add Inventory Item</div>
+    <div id="modal-additem-alert"></div>
+    <div class="form-grid">
+      <div class="full"><label>Item Name</label><input type="text" id="mi-name" placeholder="e.g. MCB 16A ANDELI"></div>
+      <div><label>Category</label>
+        <select id="mi-cat">
+          <option>Circuit Protection</option><option>Switches & Sockets</option><option>Lighting</option>
+          <option>Cables & Conduits</option><option>Heating Elements</option><option>Extensions & Plugs</option>
+          <option>Tools</option><option>Electronics & AV</option><option>Fixings & Adhesives</option>
+          <option>Accessories</option><option>Other</option>
+        </select>
+      </div>
+      <div><label>Unit</label>
+        <select id="mi-unit"><option>PIECE</option><option>PKT</option><option>PSC</option><option>METRES</option><option>PAIR</option><option>SET</option></select>
+      </div>
+      <div><label>Buying Price (KSh)</label><input type="number" id="mi-buy" placeholder="0" min="0" onblur="suggestSellPrice()"></div>
+      <div>
+        <label>Selling Price (KSh) <span id="mi-sell-hint" style="color:var(--cyan);font-size:8px;cursor:pointer;display:none" onclick="acceptSuggestedPrice()">⚡ Accept AI suggestion</span></label>
+        <input type="number" id="mi-sell" placeholder="0" min="0">
+        <div id="mi-sell-suggestion" style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-top:4px;min-height:14px"></div>
+      </div>
+      <div><label>Opening Stock Qty</label><input type="number" id="mi-qty" placeholder="0" min="0"></div>
+      <div><label>Reorder Point</label><input type="number" id="mi-reorder" placeholder="5" min="0"></div>
+      <div class="full"><label>Notes</label><input type="text" id="mi-notes" placeholder="SKU, brand, specs..."></div>
+    </div>
+    <input type="hidden" id="mi-edit-id">
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-additem')">Cancel</button>
+      <button class="btn btn-cyan" onclick="saveItemModal()">Save Item</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-addcust" class="modal-bg">
+  <div class="modal">
+    <div class="modal-title">Add Customer</div>
+    <div class="form-grid">
+      <div><label>Name</label><input type="text" id="mc-name" placeholder="Customer name"></div>
+      <div><label>Phone</label><input type="text" id="mc-phone" placeholder="07xx..."></div>
+      <div><label>Location</label><input type="text" id="mc-loc" placeholder="e.g. Ngara, Nairobi"></div>
+      <div><label>Business Type</label><input type="text" id="mc-biz" placeholder="e.g. Contractor, Hardware shop..."></div>
+      <div class="full"><label>Notes</label><textarea id="mc-notes" placeholder="Credit limit, preferences..."></textarea></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-addcust')">Cancel</button>
+      <button class="btn btn-cyan" onclick="saveCustomer()">Save Customer</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-receipt" class="modal-bg">
+  <div class="modal">
+    <div class="modal-title">Sale Receipt</div>
+    <div id="receipt-content"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-receipt')">Close</button>
+      <button class="btn btn-ghost" style="background:#25D36618;border-color:#25D36640;color:#25D366" onclick="sendWhatsAppReceipt()">📱 Send via WhatsApp</button>
+      <button class="btn btn-cyan" onclick="printReceipt()">🖨 Print Receipt</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════
+// CONSTANTS
+// ════════════════════════════════════════════════════════
+const STORE = 'volta_os_v2';
+const APIKEY_STORE = 'volta_apikey_v1';
+const INFLOW = ['sale','service','capital'];
+const OUTFLOW = ['purchase','expense','withdrawal'];
+const TYPE_LABEL = { sale:'Sales Revenue', service:'Service Income', purchase:'Stock Purchase', expense:'Operating Expense', capital:'Capital Injection', withdrawal:'Owner Withdrawal' };
+const TYPE_CATS = {
+  sale: ['General Electronics','MCBs & Circuit Breakers','Cables & Wires','Lighting','Switches & Sockets','Tools & Equipment','Consumer Electronics','Other Sales'],
+  service: ['Electrical Installation','Repair / Troubleshooting','Wiring Job','M-Pesa Commission','Delivery Fee','Other Service'],
+  purchase: ['Circuit Protection','Switches & Sockets','Lighting','Cables & Conduits','Heating Elements','Extensions & Plugs','Tools','Electronics & AV','Fixings & Adhesives','Accessories','Other'],
+  expense: ['Rent','Electricity','Water','Staff/Labour','Transport','Packaging','Permits & Legal','Repairs','Communication/Airtime','Other Expense'],
+  capital: ['Owner Capital','Bank Loan','SACCO','Family/Friends','Grant','Other'],
+  withdrawal: ['Owner Salary','Personal Withdrawal','Loan Repayment','Other']
+};
+
+// ════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════
+function defaultState() {
+  return {
+    meta: { shopName:'My Electronics Shop', startDate: today(), capital: 200000, location:'Nairobi, Kenya', owner:'', reorderDefault: 5 },
+    transactions: [],
+    inventory: [],
+    customers: [],
+    sales: []
+  };
+}
+let S = (() => { try { const r=localStorage.getItem(STORE); return r?JSON.parse(r):defaultState(); } catch { return defaultState(); } })();
+function save() { localStorage.setItem(STORE, JSON.stringify(S)); }
+function getKey() { return localStorage.getItem(APIKEY_STORE)||''; }
+
+// ════════════════════════════════════════════════════════
+// HELPERS
+// ════════════════════════════════════════════════════════
+function today() { return new Date().toISOString().slice(0,10); }
+function fmtK(n) { return Math.round(Math.abs(n)).toLocaleString('en-KE'); }
+function fmtDate(d) { return new Date(d+'T00:00:00').toLocaleDateString('en-KE',{day:'2-digit',month:'short',year:'numeric'}); }
+function uid() { return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function daysBetween(a,b) { return Math.max(1, Math.round((new Date(b)-new Date(a))/86400000)); }
+function pct(a,b) { return b>0?((a/b)*100).toFixed(1)+'%':'0%'; }
+
+function stats(txns) {
+  txns = txns ?? S.transactions;
+  const sum = t => txns.filter(x=>x.type===t).reduce((a,x)=>a+x.amount,0);
+  const rev=sum('sale')+sum('service'), purch=sum('purchase'), exp=sum('expense');
+  const capIn=sum('capital'), wdraw=sum('withdrawal');
+  const gp=rev-purch, np=gp-exp;
+  const capRem=S.meta.capital+capIn-purch-exp-wdraw+rev;
+  const margin=rev>0?gp/rev*100:0;
+  const days=daysBetween(S.meta.startDate,today());
+  return { rev, purch, exp, capIn, wdraw, gp, np, capRem, margin, avgDaily:rev/days, days, outflow:purch+exp+wdraw };
+}
+
+function todaySales() {
+  const t=today();
+  return S.transactions.filter(x=>x.date===t&&INFLOW.includes(x.type)).reduce((a,x)=>a+x.amount,0);
+}
+
+// ════════════════════════════════════════════════════════
+// NAV
+// ════════════════════════════════════════════════════════
+const PAGES = ['dashboard','pos','inventory','add','history','reports','restock','ask','insights','customers','settings'];
+const MOB_PAGES = ['dashboard','pos','inventory','reports','ask','settings'];
+
+function goto(page) {
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.mob-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('sec-'+page).classList.add('active');
+  const i=PAGES.indexOf(page);
+  if(i>=0) document.querySelectorAll('.nav-tab')[i]?.classList.add('active');
+  const mob=document.getElementById('mob-'+page);
+  if(mob) mob.classList.add('active');
+  const fab=document.getElementById('fab');
+  if(fab) fab.style.display=page==='pos'?'none':'flex';
+  if(page==='dashboard')  renderDashboard();
+  if(page==='pos')        renderPOS();
+  if(page==='inventory')  renderInventory();
+  if(page==='history')    renderHistory();
+  if(page==='reports')    renderReports();
+  if(page==='add')        { renderRecentAdd(); onTypeChange(); }
+  if(page==='restock')    renderRestock();
+  if(page==='customers')  renderCustomers();
+  if(page==='settings')   loadSettings();
+  if(page==='ask')        initAsk();
+}
+
+// ════════════════════════════════════════════════════════
+// DASHBOARD
+// ════════════════════════════════════════════════════════
+let charts = {};
+function renderDashboard() {
+  const s=stats(), m=S.meta;
+  document.getElementById('dash-shopname').textContent=m.shopName;
+  document.getElementById('navTitle').textContent=m.shopName.split(' ').slice(0,2).join(' ').toUpperCase();
+  document.getElementById('dash-date').textContent=new Date().toLocaleDateString('en-KE',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  document.getElementById('dash-days').textContent=`Day ${s.days} · ${S.transactions.length} transactions logged`;
+  document.getElementById('dash-capital').textContent=`KSh ${fmtK(s.capRem)}`;
+  document.getElementById('dash-capital').style.color=s.capRem>=0?'var(--green)':'var(--red)';
+  document.getElementById('dash-capital-sub').textContent=`${pct(s.capRem,m.capital)} of starting capital · KSh ${fmtK(m.capital)} total`;
+  document.getElementById('dash-rev').textContent=`KSh ${fmtK(s.rev)}`;
+  document.getElementById('dash-out').textContent=`KSh ${fmtK(s.outflow)}`;
+  const nd=s.np; document.getElementById('dash-net').textContent=`${nd>=0?'+':'-'}KSh ${fmtK(nd)}`;
+  document.getElementById('dash-net').style.color=nd>=0?'var(--amber)':'var(--red)';
+  document.getElementById('dash-today').textContent=`KSh ${fmtK(todaySales())}`;
+
+  // Alert
+  const al=document.getElementById('dash-alert');
+  const lowItems=S.inventory.filter(i=>i.qty<=i.reorderPoint&&i.qty>0);
+  const outItems=S.inventory.filter(i=>i.qty===0);
+  let alertHtml='';
+  if(s.capRem<0) alertHtml+=`<div class="alert alert-err">⚠ Capital balance is negative (KSh ${fmtK(s.capRem)}). Review expenses and outflows immediately.</div>`;
+  else if(s.capRem<m.capital*0.1) alertHtml+=`<div class="alert alert-warn">⚠ Capital below 10% of starting amount (KSh ${fmtK(s.capRem)} remaining).</div>`;
+  if(outItems.length) alertHtml+=`<div class="alert alert-err">📦 ${outItems.length} item(s) completely out of stock.</div>`;
+  else if(lowItems.length) alertHtml+=`<div class="alert alert-warn">📦 ${lowItems.length} item(s) running low on stock.</div>`;
+  al.innerHTML=alertHtml;
+
+  // Stats
+  const boxes=[
+    {l:'Stock Value',v:`KSh ${fmtK(S.inventory.reduce((a,i)=>a+i.buyPrice*i.qty,0))}`,c:'blue',s:'At cost'},
+    {l:'Gross Profit',v:`KSh ${fmtK(s.gp)}`,c:s.gp>=0?'green':'red',s:'Revenue − Stock cost'},
+    {l:'Net Profit',v:`${nd>=0?'+':'-'}KSh ${fmtK(nd)}`,c:nd>=0?'green':'red',s:'Bottom line'},
+    {l:'Gross Margin',v:s.margin.toFixed(1)+'%',c:s.margin>=30?'green':s.margin>=15?'amber':'red',s:'Efficiency'},
+    {l:'Avg Daily Rev.',v:`KSh ${fmtK(s.avgDaily)}`,c:'purple',s:`Over ${s.days} days`},
+    {l:'SKUs Tracked',v:S.inventory.length,c:'cyan',s:`${S.inventory.filter(i=>i.qty>0).length} in stock`},
+    {l:'Low Stock Items',v:lowItems.length+outItems.length,c:(lowItems.length+outItems.length)>0?'red':'green',s:'Need reorder'},
+    {l:'Today\'s Sales',v:`KSh ${fmtK(todaySales())}`,c:'cyan',s:today()},
+  ];
+  document.getElementById('dash-stats').innerHTML=boxes.map(b=>`<div class="stat-box ${b.c}"><div class="stat-label">${b.l}</div><div class="stat-value" style="color:var(--${b.c})">${b.v}</div><div class="stat-sub">${b.s}</div></div>`).join('');
+
+  // Bars
+  const total=m.capital+stats().capIn;
+  const bars=[
+    {l:'Stock Purchases',a:s.purch,c:'var(--blue)'},
+    {l:'Operating Expenses',a:s.exp,c:'var(--red)'},
+    {l:'Owner Withdrawals',a:s.wdraw,c:'var(--purple)'},
+    {l:'Remaining Capital',a:Math.max(0,s.capRem),c:'var(--green)'},
+  ];
+  document.getElementById('dash-bars').innerHTML=bars.map(b=>{const p=total>0?Math.min(100,b.a/total*100):0;return`<div class="prog-row"><div class="prog-labels"><span>${b.l}</span><span style="color:${b.c}">KSh ${fmtK(b.a)} (${p.toFixed(1)}%)</span></div><div class="prog-track"><div class="prog-fill" style="width:${p}%;background:${b.c}"></div></div></div>`;}).join('');
+
+  // Low stock
+  const lsEl=document.getElementById('dash-lowstock');
+  const urgent=S.inventory.filter(i=>i.qty===0).slice(0,6);
+  const low=S.inventory.filter(i=>i.qty>0&&i.qty<=i.reorderPoint).sort((a,b)=>a.qty-b.qty).slice(0,6);
+  if(urgent.length||low.length) {
+    lsEl.innerHTML=`<div class="card" style="margin-bottom:12px;border-color:var(--red-dim)"><div class="card-title"><span class="low-stock-dot"></span>Stock Alerts</div>
+      ${urgent.map(i=>`<div class="restock-item"><span style="font-size:12px">${i.name}</span><span class="badge b-out" style="background:#FF444418;color:#FF7070">OUT OF STOCK</span></div>`).join('')}
+      ${low.map(i=>`<div class="restock-item"><span style="font-size:12px">${i.name}</span><span class="badge b-low">Only ${i.qty} left</span></div>`).join('')}
+      <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="goto('restock')">View Restock Planner →</button>
+    </div>`;
+  } else { lsEl.innerHTML=''; }
+
+  // Recent
+  const recent=[...S.transactions].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,8);
+  document.getElementById('dash-recent').innerHTML=recent.length?`<div class="tbl-wrap"><table>
+    <thead><tr><th>Date</th><th>Type</th><th>Description</th><th style="text-align:right">Amount</th></tr></thead>
+    <tbody>${recent.map(t=>`<tr><td style="white-space:nowrap">${fmtDate(t.date)}</td><td><span class="badge b-${t.type}">${t.type}</span></td><td>${t.description}</td><td style="text-align:right;color:${INFLOW.includes(t.type)?'var(--green)':'var(--red)'};">${INFLOW.includes(t.type)?'+':'-'}KSh ${fmtK(t.amount)}</td></tr>`).join('')}</tbody>
+  </table></div>`:`<div class="empty">No transactions yet. <span style="cursor:pointer;color:var(--cyan)" onclick="goto('add')">Log your first entry →</span></div>`;
+
+  buildCharts();
+  renderVelocityPanels();
+  checkDailyBriefing();
+}
+
+function buildCharts() {
+  const co={responsive:true,maintainAspectRatio:true,plugins:{legend:{labels:{color:'#9AABC8',font:{family:'IBM Plex Mono',size:10},padding:10}},tooltip:{backgroundColor:'#111520',borderColor:'#1E2535',borderWidth:1,titleColor:'#E8F0FE',bodyColor:'#9AABC8',bodyFont:{family:'IBM Plex Mono',size:10}}},scales:{x:{grid:{color:'#1E2535'},ticks:{color:'#556480',font:{family:'IBM Plex Mono',size:9}}},y:{grid:{color:'#1E2535'},ticks:{color:'#556480',font:{family:'IBM Plex Mono',size:9},callback:v=>'KSh '+fmtK(v)}}}};
+  // Rev vs Outflows
+  const daysN=30,lb=[],rv=[],ot=[];
+  for(let i=daysN-1;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const ds=d.toISOString().slice(0,10);lb.push(d.toLocaleDateString('en-KE',{day:'2-digit',month:'short'}));const dt=S.transactions.filter(t=>t.date===ds);rv.push(dt.filter(t=>INFLOW.includes(t.type)).reduce((a,t)=>a+t.amount,0));ot.push(dt.filter(t=>OUTFLOW.includes(t.type)).reduce((a,t)=>a+t.amount,0));}
+  if(charts.re)charts.re.destroy();
+  charts.re=new Chart(document.getElementById('chartRevExp'),{type:'line',data:{labels:lb,datasets:[{label:'Revenue',data:rv,borderColor:'#00E676',backgroundColor:'#00E67614',fill:true,tension:.35,pointRadius:2,pointHoverRadius:4},{label:'Outflows',data:ot,borderColor:'#FF4444',backgroundColor:'#FF444414',fill:true,tension:.35,pointRadius:2,pointHoverRadius:4}]},options:{...co}});
+  // Expense cats
+  const ec={};S.transactions.filter(t=>t.type==='expense').forEach(t=>{ec[t.category]=(ec[t.category]||0)+t.amount;});
+  const cols=['#00D4FF','#FF4444','#3B82F6','#00E676','#A855F7','#FFB300','#FF9966','#4EE890'];
+  if(charts.ec)charts.ec.destroy();
+  const ctx2=document.getElementById('chartExpCat');
+  const el=Object.keys(ec),ev=Object.values(ec);
+  if(el.length){charts.ec=new Chart(ctx2,{type:'doughnut',data:{labels:el,datasets:[{data:ev,backgroundColor:cols.slice(0,el.length),borderColor:'#07090E',borderWidth:3}]},options:{responsive:true,maintainAspectRatio:true,cutout:'65%',plugins:{legend:{position:'right',labels:{color:'#9AABC8',font:{family:'IBM Plex Mono',size:9},padding:8}},tooltip:{backgroundColor:'#111520',borderColor:'#1E2535',borderWidth:1,bodyFont:{family:'IBM Plex Mono',size:10},callbacks:{label:ctx=>`KSh ${fmtK(ctx.raw)}`}}}}});}else{const c=ctx2.getContext('2d');c.clearRect(0,0,500,500);c.fillStyle='#556480';c.font='11px IBM Plex Mono';c.textAlign='center';c.fillText('No expense data',ctx2.width/2,ctx2.height/2);}
+  // Monthly P&L
+  const mm={};S.transactions.forEach(t=>{const mo=t.date.slice(0,7);if(!mm[mo])mm[mo]={r:0,o:0};if(INFLOW.includes(t.type))mm[mo].r+=t.amount;if(OUTFLOW.includes(t.type))mm[mo].o+=t.amount;});
+  const mk=Object.keys(mm).sort(),mn=mk.map(m=>mm[m].r-mm[m].o);
+  if(charts.mp)charts.mp.destroy();
+  if(mk.length){charts.mp=new Chart(document.getElementById('chartMonthly'),{type:'bar',data:{labels:mk.map(m=>{const[y,mo]=m.split('-');return new Date(y,mo-1).toLocaleDateString('en-KE',{month:'short',year:'2-digit'});}),datasets:[{label:'Net P/L',data:mn,backgroundColor:mn.map(v=>v>=0?'#00E67680':'#FF444480'),borderColor:mn.map(v=>v>=0?'#00E676':'#FF4444'),borderWidth:1,borderRadius:3}]},options:{...co}});}
+}
+
+// ════════════════════════════════════════════════════════
+// POS
+// ════════════════════════════════════════════════════════
+let cart = [];
+let posViewGrid = true;
+let posActiveCat = '';
+
+function renderPOS() {
+  // Category pills
+  const cats=['All',...new Set(S.inventory.map(i=>i.category))].filter(Boolean);
+  document.getElementById('pos-cats').innerHTML=cats.map(c=>`<button onclick="setPOSCat('${c}')" class="pill" id="posc-${c.replace(/\s/g,'_')}" style="${posActiveCat===c||(!posActiveCat&&c==='All')?'border-color:var(--cyan);color:var(--cyan)':''}">${c}</button>`).join('');
+  renderPOSItems();
+  renderCart();
+}
+
+function setPOSCat(cat) {
+  posActiveCat = cat==='All'?'':cat;
+  renderPOS();
+}
+
+function renderPOSItems() {
+  const q=(document.getElementById('pos-search')?.value||'').toLowerCase();
+  let items=S.inventory.filter(i=>i.sellPrice>0);
+  if(posActiveCat) items=items.filter(i=>i.category===posActiveCat);
+  if(q) items=items.filter(i=>i.name.toLowerCase().includes(q)||i.category.toLowerCase().includes(q));
+  const el=document.getElementById('pos-items');
+  if(!items.length){el.innerHTML=`<div class="empty" style="grid-column:1/-1">No items found.<br><button class="btn btn-ghost btn-sm mt8" onclick="goto('inventory')">Add Inventory Items →</button></div>`;return;}
+  el.innerHTML=items.map(i=>`<div class="item-card${i.qty===0?' out':''}" onclick="${i.qty>0?`addToCart('${i.id}')`:''}" title="${i.qty===0?'Out of Stock':'Add to cart'}">
+    <div class="item-cat-tag">${i.category}</div>
+    <div class="item-name" style="margin-top:4px">${i.name}</div>
+    <div class="item-price">KSh ${fmtK(i.sellPrice)}</div>
+    <div class="item-stock" style="color:${i.qty===0?'var(--red)':i.qty<=i.reorderPoint?'var(--amber)':'var(--text3)'}">
+      ${i.qty===0?'OUT OF STOCK':`Qty: ${i.qty} ${i.unit||''}`}
+    </div>
+  </div>`).join('');
+}
+
+function togglePosView() { posViewGrid=!posViewGrid; const el=document.getElementById('pos-items'); el.style.gridTemplateColumns=posViewGrid?'repeat(auto-fill,minmax(150px,1fr))':'1fr'; }
+
+function addToCart(id) {
+  const item=S.inventory.find(i=>i.id===id); if(!item||item.qty===0) return;
+  const existing=cart.find(c=>c.id===id);
+  if(existing) {
+    if(existing.qty>=item.qty){showAlert('pos-alert',`Only ${item.qty} in stock.`,'warn');return;}
+    existing.qty++;
+  } else { cart.push({id,name:item.name,price:item.sellPrice,qty:1,maxQty:item.qty}); }
+  renderCart();
+}
+
+function removeFromCart(id) { cart=cart.filter(c=>c.id!==id); renderCart(); }
+
+function changeQty(id,delta) {
+  const c=cart.find(x=>x.id===id); if(!c) return;
+  c.qty=Math.max(1,Math.min(c.maxQty,c.qty+delta));
+  renderCart();
+}
+
+function clearCart() { cart=[]; document.getElementById('pos-search').value=''; renderPOSItems(); renderCart(); }
+
+function renderCart() {
+  const el=document.getElementById('cart-items');
+  if(!cart.length){el.innerHTML='<div class="empty" style="padding:20px">No items added yet.</div>';document.getElementById('pos-totals').style.display='none';return;}
+  el.innerHTML=cart.map(c=>`<div class="cart-item">
+    <div class="cart-name">${c.name}<br><span style="font-family:var(--mono);font-size:10px;color:var(--text3)">KSh ${fmtK(c.price)} each</span></div>
+    <div class="qty-ctrl"><button class="qty-btn" onclick="changeQty('${c.id}',-1)">−</button><span class="qty-num">${c.qty}</span><button class="qty-btn" onclick="changeQty('${c.id}',1)">+</button></div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+      <div class="cart-price">KSh ${fmtK(c.price*c.qty)}</div>
+      <button class="btn-xs btn-ghost btn" onclick="removeFromCart('${c.id}')" style="padding:2px 6px;font-size:9px">✕</button>
+    </div>
+  </div>`).join('');
+  document.getElementById('pos-totals').style.display='block';
+  updateCartTotals();
+}
+
+function updateCartTotals() {
+  const sub=cart.reduce((a,c)=>a+c.price*c.qty,0);
+  const disc=Math.max(0,parseFloat(document.getElementById('pos-discount')?.value)||0);
+  const total=Math.max(0,sub-disc);
+  document.getElementById('pos-subtotal').textContent=`KSh ${fmtK(sub)}`;
+  document.getElementById('pos-disc-show').textContent=`-KSh ${fmtK(disc)}`;
+  document.getElementById('pos-total-big').textContent=`KSh ${fmtK(total)}`;
+}
+
+function completeSale() {
+  if(!cart.length){showAlert('pos-alert','Add items to the cart first.','warn');return;}
+  const sub=cart.reduce((a,c)=>a+c.price*c.qty,0);
+  const disc=Math.max(0,parseFloat(document.getElementById('pos-discount').value)||0);
+  const total=Math.max(0,sub-disc);
+  const payment=document.getElementById('pos-payment').value;
+  const customer=document.getElementById('pos-customer').value.trim();
+  const notes=document.getElementById('pos-notes').value.trim();
+  const itemsDesc=cart.map(c=>`${c.name} ×${c.qty}`).join(', ');
+  // Deduct stock
+  cart.forEach(c=>{const inv=S.inventory.find(i=>i.id===c.id);if(inv)inv.qty=Math.max(0,inv.qty-c.qty);});
+  // Log transaction
+  const txn={id:uid(),type:'sale',category:'General Electronics',date:today(),amount:total,description:`POS Sale: ${itemsDesc}${customer?` — Customer: ${customer}`:''}`,note:`Payment: ${payment}${disc>0?` | Discount: KSh ${fmtK(disc)}`:''}${notes?` | ${notes}`:''}`,items:[...cart],discount:disc,payment,customer};
+  S.transactions.push(txn);
+  // Log sale record
+  S.sales.push({id:txn.id,date:today(),items:[...cart],total,discount:disc,payment,customer});
+  // Add/update customer
+  if(customer){const existing=S.customers.find(c2=>c2.name.toLowerCase()===customer.toLowerCase()||c2.phone===customer);if(existing){existing.totalPurchases=(existing.totalPurchases||0)+total;existing.lastPurchase=today();}else{S.customers.push({id:uid(),name:customer,phone:'',totalPurchases:total,lastPurchase:today(),outstanding:payment==='Credit (Debt)'?total:0});}}
+  save();
+  // Show receipt
+  showReceipt(txn);
+  clearCart();
+  document.getElementById('pos-discount').value='0';
+  document.getElementById('pos-customer').value='';
+  document.getElementById('pos-notes').value='';
+  showAlert('pos-alert',`✓ Sale of KSh ${fmtK(total)} recorded successfully!`,'ok');
+}
+
+let lastReceiptTxn=null;
+function showReceipt(txn) {
+  lastReceiptTxn=txn;
+  const sub=txn.items.reduce((a,c)=>a+c.price*c.qty,0);
+  document.getElementById('receipt-content').innerHTML=`
+    <div style="font-family:var(--mono);font-size:12px;color:var(--text2)">
+      <div style="text-align:center;margin-bottom:14px">
+        <div style="font-size:16px;font-weight:700;color:var(--text)">${S.meta.shopName}</div>
+        <div style="font-size:10px;color:var(--text3)">${S.meta.location||''}</div>
+        <div style="font-size:10px;color:var(--text3)">${fmtDate(txn.date)}</div>
+        <div style="font-size:10px;color:var(--text3)">Receipt #${txn.id.toUpperCase()}</div>
+      </div>
+      <div style="border-top:1px dashed var(--border);border-bottom:1px dashed var(--border);padding:10px 0;margin:10px 0">
+        ${txn.items.map(i=>`<div style="display:flex;justify-content:space-between;padding:3px 0"><span>${i.name} ×${i.qty}</span><span>KSh ${fmtK(i.price*i.qty)}</span></div>`).join('')}
+      </div>
+      ${txn.discount>0?`<div style="display:flex;justify-content:space-between;padding:3px 0"><span>Subtotal</span><span>KSh ${fmtK(sub)}</span></div><div style="display:flex;justify-content:space-between;padding:3px 0;color:var(--red)"><span>Discount</span><span>-KSh ${fmtK(txn.discount)}</span></div>`:''}
+      <div style="display:flex;justify-content:space-between;font-size:16px;font-weight:700;color:var(--text);margin-top:8px;padding-top:8px;border-top:1px dashed var(--border)">
+        <span>TOTAL</span><span style="color:var(--cyan)">KSh ${fmtK(txn.amount)}</span>
+      </div>
+      <div style="margin-top:10px;font-size:10px;color:var(--text3)">Payment: ${txn.payment}${txn.customer?` | Customer: ${txn.customer}`:''}</div>
+      <div style="text-align:center;margin-top:14px;font-size:10px;color:var(--text4)">Thank you for shopping with us!</div>
+    </div>`;
+  openModal('modal-receipt');
+}
+
+function printReceipt() {
+  const content=document.getElementById('receipt-content').innerHTML;
+  const w=window.open('','_blank');
+  w.document.write(`<html><head><title>Receipt</title><style>body{font-family:monospace;max-width:300px;margin:0 auto;padding:20px;background:#fff;color:#000}*{box-sizing:border-box}</style></head><body>${content}<script>window.print();window.close();<\/script></body></html>`);
+  w.document.close();
+}
+
+// ════════════════════════════════════════════════════════
+// INVENTORY
+// ════════════════════════════════════════════════════════
+let invLowOnly=false;
+
+function renderInventory() {
+  const q=(document.getElementById('inv-search')?.value||'').toLowerCase();
+  const cat=document.getElementById('inv-cat')?.value||'';
+  const sort=document.getElementById('inv-sort')?.value||'';
+  let items=[...S.inventory];
+  if(q) items=items.filter(i=>i.name.toLowerCase().includes(q)||(i.category||'').toLowerCase().includes(q));
+  if(cat) items=items.filter(i=>i.category===cat);
+  if(invLowOnly) items=items.filter(i=>i.qty<=i.reorderPoint);
+  if(sort==='name') items.sort((a,b)=>a.name.localeCompare(b.name));
+  else if(sort==='stock_asc') items.sort((a,b)=>a.qty-b.qty);
+  else if(sort==='stock_desc') items.sort((a,b)=>b.qty-a.qty);
+  else if(sort==='margin_desc') items.sort((a,b)=>((b.sellPrice-b.buyPrice)/Math.max(b.buyPrice,1))-((a.sellPrice-a.buyPrice)/Math.max(a.buyPrice,1)));
+  else if(sort==='value_desc') items.sort((a,b)=>(b.buyPrice*b.qty)-(a.buyPrice*a.qty));
+
+  // Cat filter
+  const cats=[...new Set(S.inventory.map(i=>i.category))].filter(Boolean).sort();
+  const catSel=document.getElementById('inv-cat');
+  if(catSel&&catSel.options.length<=1){cats.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;catSel.appendChild(o);});}
+
+  // Stats
+  const totalVal=S.inventory.reduce((a,i)=>a+i.buyPrice*i.qty,0);
+  const totalRevVal=S.inventory.reduce((a,i)=>a+i.sellPrice*i.qty,0);
+  document.getElementById('inv-stats').innerHTML=[
+    {l:'Total SKUs',v:S.inventory.length,c:'cyan',s:'unique items'},
+    {l:'In Stock',v:S.inventory.filter(i=>i.qty>0).length,c:'green',s:'items available'},
+    {l:'Low/Out Stock',v:S.inventory.filter(i=>i.qty<=i.reorderPoint).length,c:'red',s:'need reorder'},
+    {l:'Stock Value',v:`KSh ${fmtK(totalVal)}`,c:'blue',s:'at cost price'},
+    {l:'Retail Value',v:`KSh ${fmtK(totalRevVal)}`,c:'amber',s:'if all sold'},
+    {l:'Potential Profit',v:`KSh ${fmtK(totalRevVal-totalVal)}`,c:'green',s:'gross margin'},
+  ].map(b=>`<div class="stat-box ${b.c}"><div class="stat-label">${b.l}</div><div class="stat-value" style="color:var(--${b.c})">${b.v}</div><div class="stat-sub">${b.s}</div></div>`).join('');
+
+  const tbody=document.getElementById('inv-tbody');
+  const empty=document.getElementById('inv-empty');
+  if(!items.length){tbody.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  tbody.innerHTML=items.map(i=>{
+    const margin=i.buyPrice>0?Math.round((i.sellPrice-i.buyPrice)/i.buyPrice*100):null;
+    const status=i.qty===0?'<span class="badge b-low">Out</span>':i.qty<=i.reorderPoint?`<span class="badge b-med">Low: ${i.qty}</span>`:`<span class="badge b-ok">${i.qty}</span>`;
+    return`<tr>
+      <td style="font-weight:600;font-size:11px;color:var(--text)">${i.name}</td>
+      <td><span class="category-pill">${i.category||'-'}</span></td>
+      <td class="mono">${i.buyPrice>0?fmtK(i.buyPrice):'<span style="color:var(--text3)">?</span>'}</td>
+      <td class="mono text-cyan">${fmtK(i.sellPrice)}</td>
+      <td class="mono">${margin!==null?`<span style="color:${margin>=50?'var(--green)':margin>=25?'var(--amber)':'var(--red)'}">${margin}%</span>`:'<span style="color:var(--text3)">N/A</span>'}</td>
+      <td class="mono">${i.qty}</td>
+      <td class="mono">${i.buyPrice>0&&i.qty>0?fmtK(i.buyPrice*i.qty):'-'}</td>
+      <td>${status}</td>
+      <td style="white-space:nowrap">
+        <button class="edit-btn" onclick="openEditItem('${i.id}')">✎</button>
+        <button class="del-btn" onclick="deleteItem('${i.id}')">✕</button>
+      </td>
+    </tr>`;
+  }).join('');
+  document.getElementById('inv-footer').textContent=`Showing ${items.length} of ${S.inventory.length} items`;
+}
+
+function toggleLowStock() { invLowOnly=!invLowOnly; document.getElementById('inv-low-btn').style.color=invLowOnly?'var(--red)':''; renderInventory(); }
+
+function openAddItemModal() {
+  document.getElementById('mi-edit-id').value='';
+  document.getElementById('modal-additem-title').textContent='Add Inventory Item';
+  ['mi-name','mi-buy','mi-sell','mi-qty','mi-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('mi-reorder').value=S.meta.reorderDefault||5;
+  openModal('modal-additem');
+}
+
+function openEditItem(id) {
+  const item=S.inventory.find(i=>i.id===id);if(!item)return;
+  document.getElementById('mi-edit-id').value=id;
+  document.getElementById('modal-additem-title').textContent='Edit Item';
+  document.getElementById('mi-name').value=item.name||'';
+  document.getElementById('mi-cat').value=item.category||'Other';
+  document.getElementById('mi-unit').value=item.unit||'PIECE';
+  document.getElementById('mi-buy').value=item.buyPrice||0;
+  document.getElementById('mi-sell').value=item.sellPrice||0;
+  document.getElementById('mi-qty').value=item.qty||0;
+  document.getElementById('mi-reorder').value=item.reorderPoint||5;
+  document.getElementById('mi-notes').value=item.notes||'';
+  openModal('modal-additem');
+}
+
+function saveItemModal() {
+  const name=document.getElementById('mi-name').value.trim();
+  if(!name){showAlert('modal-additem-alert','Item name is required.','err');return;}
+  const sell=parseFloat(document.getElementById('mi-sell').value)||0;
+  if(!sell){showAlert('modal-additem-alert','Selling price is required.','err');return;}
+  const editId=document.getElementById('mi-edit-id').value;
+  const data={name,category:document.getElementById('mi-cat').value,unit:document.getElementById('mi-unit').value,buyPrice:parseFloat(document.getElementById('mi-buy').value)||0,sellPrice:sell,qty:parseInt(document.getElementById('mi-qty').value)||0,reorderPoint:parseInt(document.getElementById('mi-reorder').value)||5,notes:document.getElementById('mi-notes').value.trim()};
+  if(editId){const idx=S.inventory.findIndex(i=>i.id===editId);if(idx>=0)S.inventory[idx]={...S.inventory[idx],...data};}
+  else{S.inventory.push({id:uid(),...data});}
+  save();
+  closeModal('modal-additem');
+  renderInventory();
+}
+
+function deleteItem(id) {
+  const item=S.inventory.find(i=>i.id===id);
+  if(!confirm(`Delete "${item?.name}"?`))return;
+  S.inventory=S.inventory.filter(i=>i.id!==id);
+  save();renderInventory();
+}
+
+function exportInventoryCSV() {
+  const h='Name,Category,Buy Price,Sell Price,Qty,Reorder Point,Stock Value,Margin%,Unit\n';
+  const rows=S.inventory.map(i=>{const m=i.buyPrice>0?Math.round((i.sellPrice-i.buyPrice)/i.buyPrice*100):0;return`"${i.name}","${i.category||''}",${i.buyPrice},${i.sellPrice},${i.qty},${i.reorderPoint||5},${i.buyPrice*i.qty},${m},"${i.unit||''}"`}).join('\n');
+  const blob=new Blob([h+rows],{type:'text/csv'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`${S.meta.shopName.replace(/\s/g,'-')}-inventory-${today()}.csv`;a.click();
+}
+
+// ════════════════════════════════════════════════════════
+// ADD TRANSACTION
+// ════════════════════════════════════════════════════════
+function onTypeChange() {
+  const type=document.getElementById('txn-type')?.value;
+  if(!type)return;
+  document.getElementById('txn-cat').innerHTML=(TYPE_CATS[type]||[]).map(c=>`<option>${c}</option>`).join('');
+}
+function clearForm() {
+  document.getElementById('txn-type').value='sale';document.getElementById('txn-date').value=today();
+  document.getElementById('txn-amount').value='';document.getElementById('txn-desc').value='';
+  document.getElementById('txn-note').value='';onTypeChange();document.getElementById('add-alert').innerHTML='';
+}
+function addTransaction() {
+  const type=document.getElementById('txn-type').value,cat=document.getElementById('txn-cat').value,
+    date=document.getElementById('txn-date').value,amount=parseFloat(document.getElementById('txn-amount').value),
+    desc=document.getElementById('txn-desc').value.trim(),note=document.getElementById('txn-note').value.trim();
+  if(!date){showAlert('add-alert','Please select a date.','err');return;}
+  if(!amount||amount<=0){showAlert('add-alert','Please enter a valid amount.','err');return;}
+  if(!desc){showAlert('add-alert','Please add a description.','err');return;}
+  S.transactions.push({id:uid(),type,category:cat,date,amount,description:desc,note});
+  save();showAlert('add-alert',`✓ Logged: ${TYPE_LABEL[type]} — KSh ${fmtK(amount)}`,'ok');
+  document.getElementById('txn-amount').value='';document.getElementById('txn-desc').value='';
+  document.getElementById('txn-note').value='';renderRecentAdd();
+}
+function renderRecentAdd() {
+  const recent=[...S.transactions].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5);
+  document.getElementById('add-recent').innerHTML=recent.length?`<div class="tbl-wrap"><table><thead><tr><th>Date</th><th>Type</th><th>Description</th><th style="text-align:right">Amount</th></tr></thead><tbody>${recent.map(t=>`<tr><td>${fmtDate(t.date)}</td><td><span class="badge b-${t.type}">${t.type}</span></td><td>${t.description}</td><td style="text-align:right;color:${INFLOW.includes(t.type)?'var(--green)':'var(--red)'};">${INFLOW.includes(t.type)?'+':'-'}KSh ${fmtK(t.amount)}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">No entries yet.</div>';
+}
+
+// ════════════════════════════════════════════════════════
+// HISTORY
+// ════════════════════════════════════════════════════════
+function renderHistory() {
+  const q=(document.getElementById('hist-q')?.value||'').toLowerCase();
+  const type=document.getElementById('hist-type')?.value||'';
+  const month=document.getElementById('hist-month')?.value||'';
+  let txns=[...S.transactions].sort((a,b)=>b.date.localeCompare(a.date));
+  if(q) txns=txns.filter(t=>`${t.description} ${t.category} ${t.note||''}`.toLowerCase().includes(q));
+  if(type) txns=txns.filter(t=>t.type===type);
+  if(month) txns=txns.filter(t=>t.date.startsWith(month));
+  const tbody=document.getElementById('hist-tbody'),empty=document.getElementById('hist-empty');
+  if(!txns.length){tbody.innerHTML='';empty.style.display='block';document.getElementById('hist-summary').innerHTML='';return;}
+  empty.style.display='none';
+  tbody.innerHTML=txns.map(t=>`<tr><td style="white-space:nowrap">${fmtDate(t.date)}</td><td><span class="badge b-${t.type}">${t.type}</span></td><td style="color:var(--text3);font-size:10px">${t.category}</td><td><div style="color:var(--text)">${t.description}</div>${t.note?`<div style="font-size:9px;color:var(--text4);margin-top:1px">${t.note}</div>`:''}</td><td style="text-align:right;color:${INFLOW.includes(t.type)?'var(--green)':'var(--red)'};">${INFLOW.includes(t.type)?'+':'-'}KSh ${fmtK(t.amount)}</td><td><button class="del-btn" onclick="deleteTxn('${t.id}')">✕</button></td></tr>`).join('');
+  const inf=txns.filter(t=>INFLOW.includes(t.type)).reduce((a,t)=>a+t.amount,0);
+  const out=txns.filter(t=>OUTFLOW.includes(t.type)).reduce((a,t)=>a+t.amount,0);
+  const net=inf-out;
+  document.getElementById('hist-summary').innerHTML=`<div class="card"><div class="card-title">Filtered Summary (${txns.length} transactions)</div><div class="rrow"><span>Inflows</span><span class="mono text-green">+KSh ${fmtK(inf)}</span></div><div class="rrow"><span>Outflows</span><span class="mono text-red">-KSh ${fmtK(out)}</span></div><div class="rrow total"><span>Net</span><span class="mono ${net>=0?'text-green':'text-red'}">${net>=0?'+':'-'}KSh ${fmtK(net)}</span></div></div>`;
+}
+function deleteTxn(id){if(!confirm('Delete this transaction?'))return;S.transactions=S.transactions.filter(t=>t.id!==id);save();renderHistory();}
+function clearHistFilters(){document.getElementById('hist-q').value='';document.getElementById('hist-type').value='';document.getElementById('hist-month').value='';renderHistory();}
+
+// ════════════════════════════════════════════════════════
+// REPORTS
+// ════════════════════════════════════════════════════════
+function periodRange(p) {
+  const now=new Date(),y=now.getFullYear(),m=now.getMonth();
+  let start,end=today();
+  if(p==='today'){start=today();}
+  else if(p==='this_week'){const d=new Date();d.setDate(d.getDate()-d.getDay());start=d.toISOString().slice(0,10);}
+  else if(p==='this_month'){start=`${y}-${String(m+1).padStart(2,'0')}-01`;}
+  else if(p==='last_month'){const lm=new Date(y,m-1,1),le=new Date(y,m,0);start=lm.toISOString().slice(0,10);end=le.toISOString().slice(0,10);}
+  else if(p==='last_30'){const d=new Date();d.setDate(d.getDate()-30);start=d.toISOString().slice(0,10);}
+  else if(p==='last_90'){const d=new Date();d.setDate(d.getDate()-90);start=d.toISOString().slice(0,10);}
+  else{start=S.meta.startDate||'2020-01-01';}
+  return{start,end};
+}
+function renderReports() {
+  const period=document.getElementById('rep-period').value;
+  const{start,end}=periodRange(period);
+  const txns=S.transactions.filter(t=>t.date>=start&&t.date<=end);
+  const s=stats(txns);
+  const days=daysBetween(start,end);
+  const pCats={},eCats={},sCats={};
+  txns.filter(t=>t.type==='purchase').forEach(t=>{pCats[t.category]=(pCats[t.category]||0)+t.amount;});
+  txns.filter(t=>t.type==='expense').forEach(t=>{eCats[t.category]=(eCats[t.category]||0)+t.amount;});
+  txns.filter(t=>t.type==='sale').forEach(t=>{sCats[t.category]=(sCats[t.category]||0)+t.amount;});
+  const catRows=(obj,col)=>Object.keys(obj).length?Object.entries(obj).sort((a,b)=>b[1]-a[1]).map(([c,a])=>`<div class="rrow sub"><span>${c}</span><span class="mono" style="color:${col}">KSh ${fmtK(a)}</span></div>`).join(''):'<div class="empty" style="padding:16px">No data for this period.</div>';
+  document.getElementById('rep-content').innerHTML=`
+    <div class="stat-grid" style="margin-bottom:12px">
+      <div class="stat-box green"><div class="stat-label">Revenue</div><div class="stat-value text-green">KSh ${fmtK(s.rev)}</div><div class="stat-sub">Sales + Services</div></div>
+      <div class="stat-box blue"><div class="stat-label">Stock Cost</div><div class="stat-value text-blue">KSh ${fmtK(s.purch)}</div><div class="stat-sub">Buying price</div></div>
+      <div class="stat-box red"><div class="stat-label">Expenses</div><div class="stat-value text-red">KSh ${fmtK(s.exp)}</div><div class="stat-sub">Operating costs</div></div>
+      <div class="stat-box amber"><div class="stat-label">Gross Profit</div><div class="stat-value text-amber">KSh ${fmtK(s.gp)}</div><div class="stat-sub">${s.margin.toFixed(1)}% margin</div></div>
+      <div class="stat-box ${s.np>=0?'green':'red'}"><div class="stat-label">Net Profit</div><div class="stat-value" style="color:var(--${s.np>=0?'green':'red'})">${s.np>=0?'+':'-'}KSh ${fmtK(s.np)}</div><div class="stat-sub">Bottom line</div></div>
+      <div class="stat-box purple"><div class="stat-label">Daily Avg Rev.</div><div class="stat-value text-purple">KSh ${fmtK(s.rev/days)}</div><div class="stat-sub">Over ${days} days</div></div>
+    </div>
+    <div class="report2">
+      <div class="card"><div class="card-title">Stock Purchases by Category</div>${catRows(pCats,'var(--blue)')}${Object.keys(pCats).length?`<div class="rrow total"><span>Total</span><span class="mono text-blue">KSh ${fmtK(s.purch)}</span></div>`:''}</div>
+      <div class="card"><div class="card-title">Expenses by Category</div>${catRows(eCats,'var(--red)')}${Object.keys(eCats).length?`<div class="rrow total"><span>Total</span><span class="mono text-red">KSh ${fmtK(s.exp)}</span></div>`:''}</div>
+    </div>
+    <div class="card mt14"><div class="card-title">Profit & Loss Statement</div>
+      <div class="rrow"><span>Sales Revenue</span><span class="mono text-green">+KSh ${fmtK(txns.filter(t=>t.type==='sale').reduce((a,t)=>a+t.amount,0))}</span></div>
+      <div class="rrow"><span>Service Revenue</span><span class="mono text-green">+KSh ${fmtK(txns.filter(t=>t.type==='service').reduce((a,t)=>a+t.amount,0))}</span></div>
+      <div class="rrow total" style="border-top:1px solid var(--border)"><span>= Total Revenue</span><span class="mono text-green">KSh ${fmtK(s.rev)}</span></div>
+      <div class="rrow"><span>Less: Cost of Stock</span><span class="mono text-red">-KSh ${fmtK(s.purch)}</span></div>
+      <div class="rrow total" style="border-top:1px solid var(--border)"><span>= Gross Profit</span><span class="mono text-amber">KSh ${fmtK(s.gp)}</span></div>
+      <div class="rrow"><span>Less: Expenses</span><span class="mono text-red">-KSh ${fmtK(s.exp)}</span></div>
+      <div class="rrow total" style="border-top:1px solid var(--border);font-size:16px;padding:14px 0"><span>= Net Profit / (Loss)</span><span class="mono ${s.np>=0?'text-green':'text-red'}">${s.np>=0?'+':'-'}KSh ${fmtK(s.np)}</span></div>
+    </div>
+    ${txns.length===0?`<div class="alert alert-warn">No transactions in this period. <span style="cursor:pointer;text-decoration:underline" onclick="goto('add')">Log an entry →</span></div>`:''}`;
+}
+
+// ════════════════════════════════════════════════════════
+// RESTOCK
+// ════════════════════════════════════════════════════════
+function renderRestock() {
+  // Fill item selector
+  const sel=document.getElementById('rs-item');
+  sel.innerHTML=S.inventory.map(i=>`<option value="${i.id}">${i.name} (Qty: ${i.qty})</option>`).join('');
+  document.getElementById('rs-date').value=today();
+  // Low stock list
+  const low=S.inventory.filter(i=>i.qty<=i.reorderPoint).sort((a,b)=>a.qty-b.qty);
+  document.getElementById('restock-list').innerHTML=low.length?low.map(i=>`<div class="restock-item"><div><div style="font-size:12px;font-weight:600">${i.name}</div><div style="font-family:var(--mono);font-size:9px;color:var(--text3)">${i.category} · Buy: KSh ${fmtK(i.buyPrice)}</div></div><div style="display:flex;align-items:center;gap:10px"><span class="${i.qty===0?'badge b-low':'badge b-med'}">${i.qty===0?'OUT':'Qty: '+i.qty}</span><button class="btn btn-xs btn-ghost" onclick="quickRestock('${i.id}')">Quick Restock</button></div></div>`).join(''):`<div class="empty">All items are above reorder point. 🎉</div>`;
+  // All items
+  document.getElementById('restock-all-tbody').innerHTML=S.inventory.map(i=>`<tr><td style="font-size:11px;font-weight:600">${i.name}</td><td><span class="category-pill">${i.category||'-'}</span></td><td class="mono">${i.qty}</td><td class="mono">${i.reorderPoint||5}</td><td>${i.qty===0?'<span class="badge b-low">Out</span>':i.qty<=i.reorderPoint?'<span class="badge b-med">Low</span>':'<span class="badge b-ok">OK</span>'}</td><td class="mono">${fmtK(i.buyPrice)}</td><td><button class="btn btn-xs btn-ghost" onclick="quickRestock('${i.id}')">Restock</button></td></tr>`).join('');
+}
+
+function prefillRestock() {
+  const id=document.getElementById('rs-item').value;
+  const item=S.inventory.find(i=>i.id===id);
+  if(!item)return;
+  document.getElementById('rs-buy').value=item.buyPrice||'';
+  document.getElementById('rs-sell').value=item.sellPrice||'';
+}
+
+function quickRestock(id) {
+  document.getElementById('rs-item').value=id;
+  prefillRestock();
+  document.getElementById('rs-qty').focus();
+}
+
+function doRestock() {
+  const id=document.getElementById('rs-item').value;
+  const qty=parseInt(document.getElementById('rs-qty').value)||0;
+  if(!qty){showAlert('restock-alert','Enter quantity to restock.','err');return;}
+  const item=S.inventory.find(i=>i.id===id);
+  if(!item){showAlert('restock-alert','Item not found.','err');return;}
+  const newBuy=parseFloat(document.getElementById('rs-buy').value)||item.buyPrice;
+  const newSell=parseFloat(document.getElementById('rs-sell').value)||item.sellPrice;
+  const supplier=document.getElementById('rs-supplier').value.trim();
+  const rsDate=document.getElementById('rs-date').value||today();
+  const notes=document.getElementById('rs-notes').value.trim();
+  // Update inventory
+  item.qty+=qty;
+  if(newBuy) item.buyPrice=newBuy;
+  if(newSell) item.sellPrice=newSell;
+  // Log purchase transaction
+  S.transactions.push({id:uid(),type:'purchase',category:item.category||'Other',date:rsDate,amount:newBuy*qty,description:`Restock: ${qty}× ${item.name}${supplier?` from ${supplier}`:''}`,note:notes});
+  save();
+  showAlert('restock-alert',`✓ ${qty}× ${item.name} restocked. New qty: ${item.qty}`,'ok');
+  clearRestockForm();renderRestock();
+}
+
+function clearRestockForm(){['rs-qty','rs-buy','rs-sell','rs-supplier','rs-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});document.getElementById('rs-date').value=today();}
+
+// ════════════════════════════════════════════════════════
+// CUSTOMERS
+// ════════════════════════════════════════════════════════
+function renderCustomers() {
+  const q=(document.getElementById('cust-search')?.value||'').toLowerCase();
+  let custs=[...S.customers];
+  if(q) custs=custs.filter(c=>c.name.toLowerCase().includes(q)||(c.phone||'').includes(q));
+  const total=S.customers.reduce((a,c)=>a+(c.totalPurchases||0),0);
+  document.getElementById('cust-stats').innerHTML=[
+    {l:'Total Customers',v:S.customers.length,c:'cyan',s:'registered'},
+    {l:'Total Purchases',v:`KSh ${fmtK(total)}`,c:'green',s:'from customers'},
+    {l:'Outstanding',v:`KSh ${fmtK(S.customers.reduce((a,c)=>a+(c.outstanding||0),0))}`,c:'red',s:'credit/debt'},
+  ].map(b=>`<div class="stat-box ${b.c}"><div class="stat-label">${b.l}</div><div class="stat-value" style="color:var(--${b.c})">${b.v}</div><div class="stat-sub">${b.s}</div></div>`).join('');
+  const tbody=document.getElementById('cust-tbody'),empty=document.getElementById('cust-empty');
+  if(!custs.length){tbody.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  tbody.innerHTML=custs.map(c=>`<tr><td style="font-weight:600">${c.name}</td><td class="mono">${c.phone||'-'}</td><td class="mono text-cyan">KSh ${fmtK(c.totalPurchases||0)}</td><td>${c.lastPurchase?fmtDate(c.lastPurchase):'-'}</td><td class="mono ${c.outstanding>0?'text-red':'text-green'}">${c.outstanding>0?`KSh ${fmtK(c.outstanding)}`:'Clear'}</td><td><button class="del-btn" onclick="deleteCust('${c.id}')">✕</button></td></tr>`).join('');
+}
+function openAddCustomerModal(){['mc-name','mc-phone','mc-loc','mc-biz','mc-notes'].forEach(id=>{document.getElementById(id).value='';});openModal('modal-addcust');}
+function saveCustomer(){const name=document.getElementById('mc-name').value.trim();if(!name){alert('Name required');return;}S.customers.push({id:uid(),name,phone:document.getElementById('mc-phone').value.trim(),location:document.getElementById('mc-loc').value.trim(),business:document.getElementById('mc-biz').value.trim(),notes:document.getElementById('mc-notes').value.trim(),totalPurchases:0,lastPurchase:null,outstanding:0});save();closeModal('modal-addcust');renderCustomers();}
+function deleteCust(id){if(!confirm('Delete customer?'))return;S.customers=S.customers.filter(c=>c.id!==id);save();renderCustomers();}
+
+// ════════════════════════════════════════════════════════
+// GROQ AI ENGINE
+// Two models: 70b for deep thinking, 8b for quick tasks
+// ════════════════════════════════════════════════════════
+const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
+const MODEL_SMART = 'llama-3.3-70b-versatile';   // Ask AI, Insights
+const MODEL_FAST  = 'llama3-8b-8192';             // Briefing, Smart Price, Auto-Cat
+
+async function groq(messages, fast = false, maxTokens = 600) {
+  const key = getKey();
+  if (!key) return null;
+  try {
+    const res = await fetch(GROQ_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
+      body: JSON.stringify({
+        model: fast ? MODEL_FAST : MODEL_SMART,
+        max_tokens: maxTokens,
+        temperature: 0.3,
+        messages
+      })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error?.message || `HTTP ${res.status}`);
+    return data.choices?.[0]?.message?.content || '';
+  } catch (e) {
+    console.error('Groq error:', e.message);
+    return null;
+  }
+}
+
+// ════════════════════════════════════════════════════════
+// DAILY BRIEFING — fires once per day, cached in localStorage
+// Uses: MODEL_FAST (8b) — quick, cheap
+// ════════════════════════════════════════════════════════
+const BRIEFING_STORE = 'volta_briefing_v1';
+
+async function checkDailyBriefing() {
+  if (!getKey()) return;
+  const cached = (() => { try { return JSON.parse(localStorage.getItem(BRIEFING_STORE) || 'null'); } catch { return null; } })();
+  if (cached && cached.date === today()) {
+    showBriefing(cached.text, cached.date);
+    return;
+  }
+  // Generate fresh briefing
+  const s = stats();
+  const yd = new Date(); yd.setDate(yd.getDate() - 1);
+  const ydStr = yd.toISOString().slice(0, 10);
+  const ydTxns = S.transactions.filter(t => t.date === ydStr);
+  const ydRev = ydTxns.filter(t => INFLOW.includes(t.type)).reduce((a, t) => a + t.amount, 0);
+  const ydExp = ydTxns.filter(t => OUTFLOW.includes(t.type)).reduce((a, t) => a + t.amount, 0);
+  const lowItems = S.inventory.filter(i => i.qty <= i.reorderPoint);
+  const todayTxns = S.transactions.filter(t => t.date === today()).length;
+
+  document.getElementById('dash-briefing-loading').style.display = 'block';
+
+  const prompt = `You are the AI assistant for ${S.meta.shopName}, an electronics and hardware shop in ${S.meta.location || 'Nairobi, Kenya'}.
+
+Shop data:
+- Yesterday (${ydStr}): Revenue KSh ${fmtK(ydRev)}, Outflows KSh ${fmtK(ydExp)}, Net KSh ${fmtK(ydRev - ydExp)}
+- Overall: Capital KSh ${fmtK(s.capRem)}, Net Profit KSh ${fmtK(s.np)}, Margin ${s.margin.toFixed(1)}%
+- Low stock items: ${lowItems.length} (${lowItems.slice(0, 3).map(i => i.name).join(', ')}${lowItems.length > 3 ? '...' : ''})
+- Transactions logged today: ${todayTxns}
+
+Write a morning briefing in EXACTLY 3 short lines. No headers, no bullet points, no markdown. Plain sentences. Line 1: yesterday summary. Line 2: one thing to watch today. Line 3: one action item. Be direct, specific, use KSh figures where relevant.`;
+
+  const text = await groq([{ role: 'user', content: prompt }], true, 200);
+  document.getElementById('dash-briefing-loading').style.display = 'none';
+
+  if (text) {
+    localStorage.setItem(BRIEFING_STORE, JSON.stringify({ date: today(), text }));
+    showBriefing(text, today());
+  }
+}
+
+function showBriefing(text, date) {
+  const el = document.getElementById('dash-briefing');
+  const textEl = document.getElementById('dash-briefing-text');
+  const dateEl = document.getElementById('dash-briefing-date');
+  el.style.display = 'block';
+  dateEl.textContent = fmtDate(date);
+  textEl.innerHTML = text.replace(/\n/g, '<br>');
+}
+
+// ════════════════════════════════════════════════════════
+// FAST MOVERS + DEAD STOCK — pure JS, no AI
+// ════════════════════════════════════════════════════════
+function renderVelocityPanels() {
+  // Count units sold per item from sales records
+  const unitsSold = {};
+  S.transactions.forEach(t => {
+    if (t.type === 'sale' && t.items) {
+      t.items.forEach(item => {
+        unitsSold[item.id] = (unitsSold[item.id] || 0) + item.qty;
+      });
+    }
+  });
+
+  // Map back to inventory names
+  const scored = S.inventory
+    .filter(i => i.sellPrice > 0)
+    .map(i => ({ ...i, sold: unitsSold[i.id] || 0 }));
+
+  const fast = [...scored].sort((a, b) => b.sold - a.sold).slice(0, 5);
+  const dead = [...scored].filter(i => i.qty > 0).sort((a, b) => a.sold - b.sold).slice(0, 5);
+
+  const maxSold = fast[0]?.sold || 1;
+
+  const fastEl = document.getElementById('dash-fast-movers');
+  const deadEl = document.getElementById('dash-dead-stock');
+
+  if (!fast.some(i => i.sold > 0)) {
+    fastEl.innerHTML = '<div class="empty" style="padding:12px;font-size:10px">Complete POS sales to see velocity data.</div>';
+  } else {
+    fastEl.innerHTML = fast.map(i => `
+      <div style="padding:8px 0;border-bottom:1px solid var(--border)">
+        <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px">
+          <span style="color:var(--text);font-weight:600;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${i.name}</span>
+          <span style="font-family:var(--mono);color:var(--green)">${i.sold} sold</span>
+        </div>
+        <div style="height:3px;background:var(--border);border-radius:2px"><div style="height:3px;background:var(--green);border-radius:2px;width:${Math.round((i.sold/maxSold)*100)}%"></div></div>
+      </div>`).join('');
+  }
+
+  deadEl.innerHTML = dead.map(i => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:11px">
+      <span style="color:var(--text2);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${i.name}</span>
+      <span style="font-family:var(--mono);color:${i.sold===0?'var(--red)':'var(--amber)'}">${i.sold === 0 ? '0 sold' : `${i.sold} sold`}</span>
+    </div>`).join('') || '<div class="empty" style="padding:12px;font-size:10px">All items have been sold.</div>';
+}
+
+// ════════════════════════════════════════════════════════
+// WHATSAPP RECEIPT — pre-fills wa.me with formatted receipt
+// ════════════════════════════════════════════════════════
+function sendWhatsAppReceipt() {
+  if (!lastReceiptTxn) return;
+  const t = lastReceiptTxn;
+  const sub = t.items ? t.items.reduce((a, c) => a + c.price * c.qty, 0) : t.amount;
+  const lines = [
+    `🛒 *${S.meta.shopName}*`,
+    `📍 ${S.meta.location || 'Nairobi'}`,
+    `📅 ${fmtDate(t.date)}`,
+    `🧾 Receipt #${t.id.toUpperCase()}`,
+    ``,
+    `*ITEMS:*`,
+    ...(t.items || []).map(i => `  ${i.name} ×${i.qty} — KSh ${fmtK(i.price * i.qty)}`),
+    ``,
+    ...(t.discount > 0 ? [`Subtotal: KSh ${fmtK(sub)}`, `Discount: -KSh ${fmtK(t.discount)}`, ``] : []),
+    `*TOTAL: KSh ${fmtK(t.amount)}*`,
+    `💳 ${t.payment || 'Cash'}`,
+    ``,
+    `Thank you for shopping with us! 🙏`,
+  ];
+  const msg = encodeURIComponent(lines.join('\n'));
+  const phone = t.customer && S.customers.find(c => c.name === t.customer)?.phone;
+  const url = phone
+    ? `https://wa.me/${phone.replace(/\D/g, '')}?text=${msg}`
+    : `https://wa.me/?text=${msg}`;
+  window.open(url, '_blank');
+}
+
+// ════════════════════════════════════════════════════════
+// SMART PRICE SUGGESTION — fires on buy price blur in Add Item modal
+// Uses: MODEL_FAST (8b)
+// ════════════════════════════════════════════════════════
+let _suggestedPrice = 0;
+
+async function suggestSellPrice() {
+  const buy = parseFloat(document.getElementById('mi-buy').value) || 0;
+  if (!buy || !getKey()) return;
+  const existSell = parseFloat(document.getElementById('mi-sell').value) || 0;
+  if (existSell > 0) return; // don't override if already set
+
+  const hintEl = document.getElementById('mi-sell-hint');
+  const suggEl = document.getElementById('mi-sell-suggestion');
+  suggEl.textContent = '⚡ Calculating...';
+
+  // Build margin context from shop's own history
+  const margins = S.inventory
+    .filter(i => i.buyPrice > 0 && i.sellPrice > 0)
+    .map(i => Math.round((i.sellPrice - i.buyPrice) / i.buyPrice * 100));
+  const avgMargin = margins.length
+    ? Math.round(margins.reduce((a, b) => a + b, 0) / margins.length)
+    : 67;
+
+  const name = document.getElementById('mi-name').value.trim() || 'electronics item';
+  const cat = document.getElementById('mi-cat').value;
+
+  const prompt = `Electronics shop in Nairobi, Kenya. Average margin in this shop: ${avgMargin}%.
+Item: "${name}" (${cat}). Buying price: KSh ${buy}.
+Suggest ONE selling price in KSh that is competitive for Nairobi market and gives good margin.
+Reply with ONLY the number. No text, no KSh, no explanation. Just the integer.`;
+
+  const result = await groq([{ role: 'user', content: prompt }], true, 20);
+  const suggested = parseInt((result || '').replace(/\D/g, ''));
+
+  if (suggested && suggested > buy) {
+    _suggestedPrice = suggested;
+    const margin = Math.round((suggested - buy) / buy * 100);
+    suggEl.textContent = `Suggested: KSh ${fmtK(suggested)} (+${margin}% margin)`;
+    hintEl.style.display = 'inline';
+  } else {
+    suggEl.textContent = '';
+    hintEl.style.display = 'none';
+  }
+}
+
+function acceptSuggestedPrice() {
+  if (_suggestedPrice > 0) {
+    document.getElementById('mi-sell').value = _suggestedPrice;
+    document.getElementById('mi-sell-hint').style.display = 'none';
+    document.getElementById('mi-sell-suggestion').textContent = `✓ Price set to KSh ${fmtK(_suggestedPrice)}`;
+    _suggestedPrice = 0;
+  }
+}
+
+// ════════════════════════════════════════════════════════
+// AUTO TRANSACTION CATEGORISATION — fires on description blur
+// Uses: MODEL_FAST (8b)
+// ════════════════════════════════════════════════════════
+async function autoCategorise() {
+  const desc = document.getElementById('txn-desc').value.trim();
+  const type = document.getElementById('txn-type').value;
+  if (!desc || desc.length < 6 || !getKey()) return;
+
+  const cats = TYPE_CATS[type] || [];
+  if (!cats.length) return;
+
+  const prompt = `Transaction type: ${TYPE_LABEL[type]}.
+Description: "${desc}"
+Categories available: ${cats.join(', ')}
+Which category best fits this transaction? Reply with ONLY the exact category name from the list. Nothing else.`;
+
+  const result = await groq([{ role: 'user', content: prompt }], true, 30);
+  if (!result) return;
+
+  const matched = cats.find(c => result.toLowerCase().includes(c.toLowerCase()));
+  if (matched) {
+    const catSel = document.getElementById('txn-cat');
+    catSel.value = matched;
+    const hint = document.getElementById('txn-autocat-hint');
+    hint.textContent = `⚡ Set to: ${matched}`;
+    hint.style.display = 'inline';
+    setTimeout(() => { hint.style.display = 'none'; }, 4000);
+  }
+}
+
+// ════════════════════════════════════════════════════════
+// END-OF-DAY REPORT — printable daily close
+// ════════════════════════════════════════════════════════
+function printEndOfDay() {
+  const t = today();
+  const todayTxns = S.transactions.filter(tx => tx.date === t);
+  const todaySales = S.sales?.filter(s => s.date === t) || [];
+  const inflow = todayTxns.filter(tx => INFLOW.includes(tx.type)).reduce((a, tx) => a + tx.amount, 0);
+  const outflow = todayTxns.filter(tx => OUTFLOW.includes(tx.type)).reduce((a, tx) => a + tx.amount, 0);
+  const net = inflow - outflow;
+  const itemsSold = todaySales.reduce((a, s) => a + (s.items || []).reduce((b, i) => b + i.qty, 0), 0);
+
+  // Items sold breakdown
+  const soldBreakdown = {};
+  todaySales.forEach(s => (s.items || []).forEach(i => {
+    soldBreakdown[i.name] = (soldBreakdown[i.name] || 0) + i.qty;
+  }));
+
+  const expBreakdown = todayTxns.filter(tx => tx.type === 'expense')
+    .map(tx => `<tr><td>${tx.description}</td><td style="text-align:right">KSh ${fmtK(tx.amount)}</td></tr>`).join('');
+
+  const html = `
+    <html><head><title>End-of-Day Report — ${fmtDate(t)}</title>
+    <style>
+      body{font-family:'Courier New',monospace;max-width:380px;margin:0 auto;padding:24px;color:#000;font-size:12px}
+      h1{font-size:16px;text-align:center;margin-bottom:4px}
+      .sub{text-align:center;font-size:11px;color:#555;margin-bottom:16px}
+      table{width:100%;border-collapse:collapse;margin-bottom:12px}
+      td,th{padding:5px 4px;border-bottom:1px solid #eee;text-align:left}
+      .total td{font-weight:bold;font-size:14px;border-top:2px solid #000}
+      .section{font-weight:bold;margin:14px 0 6px;text-transform:uppercase;font-size:10px;letter-spacing:2px;border-bottom:1px solid #000;padding-bottom:4px}
+      .footer{text-align:center;font-size:10px;color:#888;margin-top:20px}
+      @media print{body{padding:8px}}
+    </style></head>
+    <body>
+      <h1>${S.meta.shopName}</h1>
+      <div class="sub">${S.meta.location || ''} · End-of-Day Report</div>
+      <div class="sub"><strong>${fmtDate(t)}</strong></div>
+      <div class="section">Summary</div>
+      <table>
+        <tr><td>Total Revenue</td><td style="text-align:right">KSh ${fmtK(inflow)}</td></tr>
+        <tr><td>Total Outflows</td><td style="text-align:right">KSh ${fmtK(outflow)}</td></tr>
+        <tr class="total"><td>NET</td><td style="text-align:right">${net >= 0 ? '+' : '-'}KSh ${fmtK(net)}</td></tr>
+        <tr><td>POS Sales Made</td><td style="text-align:right">${todaySales.length}</td></tr>
+        <tr><td>Items Sold</td><td style="text-align:right">${itemsSold} units</td></tr>
+        <tr><td>Transactions Logged</td><td style="text-align:right">${todayTxns.length}</td></tr>
+      </table>
+      ${Object.keys(soldBreakdown).length ? `
+        <div class="section">Items Sold Today</div>
+        <table>${Object.entries(soldBreakdown).map(([n, q]) => `<tr><td>${n}</td><td style="text-align:right">${q} units</td></tr>`).join('')}</table>
+      ` : ''}
+      ${expBreakdown ? `
+        <div class="section">Expenses Today</div>
+        <table>${expBreakdown}</table>
+      ` : ''}
+      <div class="section">Cash Position</div>
+      <table>
+        <tr><td>To Bank / Mpesa</td><td style="text-align:right">KSh ${fmtK(Math.max(0, inflow - outflow))}</td></tr>
+        <tr><td>Running Capital</td><td style="text-align:right">KSh ${fmtK(stats().capRem)}</td></tr>
+      </table>
+      <div class="footer">Generated ${new Date().toLocaleString('en-KE')} · Volta OS — K-Tech</div>
+    </body>
+    <script>window.print();setTimeout(()=>window.close(),1000);<\/script></html>`;
+
+  const w = window.open('', '_blank');
+  w.document.write(html);
+  w.document.close();
+}
+
+// ════════════════════════════════════════════════════════
+// AI — ASK (CONVERSATIONAL)
+// ════════════════════════════════════════════════════════
+let chatHist=[];let askBusy=false;
+
+function initAsk(){document.getElementById('ask-nokey').style.display=getKey()?'none':'block';}
+
+function buildCtx() {
+  const s=stats(),m=S.meta;
+  const byType={},byCat={},byMonth={};
+  S.transactions.forEach(t=>{if(!byType[t.type])byType[t.type]={count:0,total:0};byType[t.type].count++;byType[t.type].total+=t.amount;const k=`${t.type}::${t.category}`;byCat[k]=(byCat[k]||0)+t.amount;const mo=t.date.slice(0,7);if(!byMonth[mo])byMonth[mo]={revenue:0,purchases:0,expenses:0};if(INFLOW.includes(t.type)&&t.type!=='capital')byMonth[mo].revenue+=t.amount;if(t.type==='purchase')byMonth[mo].purchases+=t.amount;if(t.type==='expense')byMonth[mo].expenses+=t.amount;});
+  const invSummary=S.inventory.map(i=>`${i.name}|qty:${i.qty}|buy:${i.buyPrice}|sell:${i.sellPrice}|cat:${i.category}`).join('\n');
+  const recent=[...S.transactions].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,30).map(t=>`${t.date}|${t.type}|${t.category}|${t.description}|KSh ${t.amount}`).join('\n');
+  return`SHOP: ${m.shopName} | Location: ${m.location} | Started: ${m.startDate} | Day ${s.days}
+CAPITAL: Starting KSh ${fmtK(m.capital)} | Remaining KSh ${fmtK(s.capRem)}
+REVENUE: KSh ${fmtK(s.rev)} | PURCHASES: KSh ${fmtK(s.purch)} | EXPENSES: KSh ${fmtK(s.exp)}
+GROSS PROFIT: KSh ${fmtK(s.gp)} (${s.margin.toFixed(1)}%) | NET PROFIT: KSh ${fmtK(s.np)}
+TODAY: KSh ${fmtK(todaySales())} | AVG DAILY: KSh ${fmtK(s.avgDaily)} | TRANSACTIONS: ${S.transactions.length}
+INVENTORY ITEMS: ${S.inventory.length} | LOW STOCK: ${S.inventory.filter(i=>i.qty<=i.reorderPoint).length} | CUSTOMERS: ${S.customers.length}
+=BY TYPE=\n${Object.entries(byType).map(([t,v])=>`${TYPE_LABEL[t]}: ${v.count}x KSh ${fmtK(v.total)}`).join('\n')}
+=BY CATEGORY=\n${Object.entries(byCat).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`${k.replace('::',' > ')}: KSh ${fmtK(v)}`).join('\n')}
+=MONTHLY=\n${Object.entries(byMonth).sort().map(([m,v])=>`${m}: Rev KSh ${fmtK(v.revenue)}, Stock KSh ${fmtK(v.purchases)}, Exp KSh ${fmtK(v.expenses)}, Net KSh ${fmtK(v.revenue-v.purchases-v.expenses)}`).join('\n')}
+=INVENTORY=\n${invSummary||'No inventory loaded'}
+=RECENT 30 TRANSACTIONS=\n${recent||'None'}`;
+}
+
+function renderMsg(role,content,thinking=false){
+  const hist=document.getElementById('ask-hist');
+  document.getElementById('ask-empty')?.remove();
+  const id='m'+Date.now();
+  const div=document.createElement('div');
+  div.className=`chat-msg ${role}`;div.id=id;
+  const av=role==='ai'?`<div class="ch-av ai">⚡</div>`:`<div class="ch-av usr">You</div>`;
+  const body=thinking?`<span class="thinking-dots"><span>●</span><span>●</span><span>●</span></span>`:fmtAI(content);
+  div.innerHTML=`${av}<div class="ch-bub ${role}" id="${id}-b">${body}</div>`;
+  hist.appendChild(div);hist.scrollTop=hist.scrollHeight;
+  return id;
+}
+
+function fmtAI(text){return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/(KSh\s?[\d,]+)/g,'<span class="num">$1</span>').replace(/(\d+\.?\d*%)/g,'<span class="num">$1</span>').replace(/\n/g,'<br>');}
+
+function updateMsg(id,content){const b=document.getElementById(`${id}-b`);if(b){b.innerHTML=fmtAI(content);}const hist=document.getElementById('ask-hist');if(hist)hist.scrollTop=hist.scrollHeight;}
+
+async function doAsk(){
+  if(askBusy)return;
+  const key=getKey();
+  const input=document.getElementById('ask-input');
+  const q=input.value.trim();
+  if(!q)return;
+  if(!key){goto('settings');return;}
+  askBusy=true;document.getElementById('ask-send').disabled=true;input.value='';input.style.height='auto';
+  renderMsg('user',q);
+  chatHist.push({role:'user',content:q});
+  const ctx=buildCtx();
+  const sys=`You are a sharp, concise financial AI advisor for "${S.meta.shopName}", an electronics and hardware shop in ${S.meta.location||'Nairobi, Kenya'}.
+Answer questions using the actual numbers. Be direct, specific, practical. Always quote KSh figures. Under 200 words unless a breakdown is needed.
+=== SHOP DATA ===\n${ctx}`;
+  const thinkId=renderMsg('ai','',true);
+  try{
+    const msgs=chatHist.length===1
+      ?[{role:'user',content:`${sys}\n\nOWNER QUESTION: ${q}`}]
+      :[{role:'user',content:`${sys}\n\nFirst question: ${chatHist[0].content}`},...chatHist.slice(1)];
+    const ans = await groq(msgs, false, 700);
+    if(!ans) throw new Error('No response from Groq. Check your API key in Settings.');
+    updateMsg(thinkId,ans);
+    chatHist.push({role:'assistant',content:ans});
+    if(chatHist.length>20)chatHist=chatHist.slice(-20);
+  }catch(e){updateMsg(thinkId,`❌ ${e.message}`);chatHist.pop();}
+  askBusy=false;document.getElementById('ask-send').disabled=false;document.getElementById('ask-input').focus();
+}
+
+function sendPill(btn){document.getElementById('ask-input').value=btn.textContent;doAsk();}
+function askKeydown(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();doAsk();}}
+function autoGrow(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,100)+'px';}
+function clearChat(){chatHist=[];document.getElementById('ask-hist').innerHTML=`<div class="chat-empty" id="ask-empty"><div class="chat-empty-icon">⚡</div><div class="chat-empty-title">Ask anything about your electronics shop</div><div class="chat-empty-sub">Full inventory + transaction history as context.<br>Ask in plain English. Get real answers.</div></div>`;}
+
+// ════════════════════════════════════════════════════════
+// AI INSIGHTS
+// ════════════════════════════════════════════════════════
+async function genInsights(){
+  const key=getKey();if(!key){showAlert('ins-alert','No API key. Go to Settings → API Keys.','err');return;}
+  const days=parseInt(document.getElementById('ins-period').value);
+  const focus=document.getElementById('ins-focus').value;
+  const customQ=document.getElementById('ins-q').value.trim();
+  const cutoff=new Date();cutoff.setDate(cutoff.getDate()-Math.min(days,9998));
+  const txns=days<9999?S.transactions.filter(t=>new Date(t.date+'T00:00:00')>=cutoff):S.transactions;
+  const s=stats(txns);
+  const catMap={};txns.forEach(t=>{const k=`[${t.type}] ${t.category}`;catMap[k]=(catMap[k]||0)+t.amount;});
+  const summary={shopName:S.meta.shopName,location:S.meta.location,periodDays:days<9999?days:'all time',transactions:txns.length,startCapital:S.meta.capital,capitalRemaining:s.capRem,totalRevenue:s.rev,totalPurchases:s.purch,totalExpenses:s.exp,grossProfit:s.gp,netProfit:s.np,grossMargin:s.margin.toFixed(2)+'%',avgDailyRevenue:Math.round(s.avgDaily),withdrawals:s.wdraw,capitalInjected:s.capIn,inventoryItems:S.inventory.length,lowStockItems:S.inventory.filter(i=>i.qty<=i.reorderPoint).length,customers:S.customers.length,categoryBreakdown:catMap};
+  const focusMap={general:'Comprehensive financial health assessment.',expenses:'Identify and reduce unnecessary expenses.',revenue:'Revenue growth strategies and patterns.',inventory:'Inventory optimisation and stock management.',cashflow:'Cash flow health and sustainability.',profitability:'Profitability deep dive.',pricing:'Pricing strategy and margin improvement.'};
+  const prompt=`You are a seasoned financial advisor specialising in electronics retail shops in Kenya.
+
+Analyse this data and give sharp, actionable insights. ${focusMap[focus]}
+${customQ?`\nOwner's specific question: "${customQ}"\n`:''}
+Data (KSh): ${JSON.stringify(summary,null,2)}
+
+Format as:
+**HEALTH SCORE**: X/10 — one line
+**KEY OBSERVATIONS** (3 bullet points with actual KSh numbers)
+**RECOMMENDATIONS** (3 specific actions for this week/month)
+**WATCH OUT** (1 key risk)
+${customQ?'**ANSWER** (direct answer to their question)\n':''}
+Under 450 words. Reference actual figures. Write for a shop owner in Nairobi.`;
+
+  const out=document.getElementById('ins-output');
+  out.innerHTML=`<div class="card"><div class="loader-row"><div class="loader-circle spin"></div><span>Analysing ${txns.length} transactions with Groq 70b...</span></div></div>`;
+  try{
+    const text = await groq([{role:'user',content:prompt}], false, 1000);
+    if(!text) throw new Error('No response. Check your Groq API key in Settings.');
+    const html=text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\*\*(.*?)\*\*/g,'<strong style="color:var(--text)">$1</strong>').replace(/\n/g,'<br>');
+    out.innerHTML=`<div class="card"><div class="flex-between" style="margin-bottom:12px;flex-wrap:wrap;gap:8px"><div class="card-title" style="margin:0">${focusMap[focus]}</div><span style="font-family:var(--mono);font-size:8px;color:var(--text4)">${new Date().toLocaleString('en-KE')} · ${txns.length} txns · Groq 70b</span></div><div class="insight-box">${html}</div><div style="margin-top:12px;display:flex;gap:8px"><button class="btn btn-ghost btn-sm" onclick="genInsights()">Regenerate</button><button class="btn btn-ghost btn-sm" onclick="copyIns()">Copy</button></div></div>`;
+    window._lastIns=text;
+  }catch(e){out.innerHTML=`<div class="alert alert-err">❌ ${e.message}</div>`;}
+}
+function copyIns(){if(window._lastIns)navigator.clipboard.writeText(window._lastIns).then(()=>showAlert('ins-alert','Copied!','ok'));}
+
+// ════════════════════════════════════════════════════════
+// SETTINGS
+// ════════════════════════════════════════════════════════
+function loadSettings(){const m=S.meta;document.getElementById('set-name').value=m.shopName||'';document.getElementById('set-capital').value=m.capital||200000;document.getElementById('set-startdate').value=m.startDate||today();document.getElementById('set-location').value=m.location||'';document.getElementById('set-owner').value=m.owner||'';document.getElementById('set-reorder').value=m.reorderDefault||5;document.getElementById('set-apikey').value=getKey()?'•'.repeat(24):'';}
+function saveSettings(){S.meta={...S.meta,shopName:document.getElementById('set-name').value.trim()||'My Electronics Shop',capital:parseFloat(document.getElementById('set-capital').value)||200000,startDate:document.getElementById('set-startdate').value||today(),location:document.getElementById('set-location').value.trim(),owner:document.getElementById('set-owner').value.trim(),reorderDefault:parseInt(document.getElementById('set-reorder').value)||5};save();document.getElementById('navTitle').textContent=S.meta.shopName.split(' ').slice(0,2).join(' ').toUpperCase();showAlert('set-alert','✓ Settings saved.','ok');}
+function saveApiKey(){const k=document.getElementById('set-apikey').value.trim();if(k&&!k.startsWith('•')){localStorage.setItem(APIKEY_STORE,k);showAlert('set-alert','✓ API key saved. AI features unlocked.','ok');}else{showAlert('set-alert','Please paste a valid API key.','warn');}}
+function exportData(){const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`volta-backup-${today()}.json`;a.click();}
+function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const imp=JSON.parse(ev.target.result);if(!imp.transactions)throw new Error('Not a valid Volta OS backup.');if(!confirm(`Import ${imp.transactions.length} transactions + ${(imp.inventory||[]).length} inventory items?`))return;S={...defaultState(),...imp};save();showAlert('set-alert',`✓ Imported ${S.transactions.length} transactions, ${S.inventory.length} items.`,'ok');}catch(err){showAlert('set-alert','Import failed: '+err.message,'err');}};r.readAsText(f);}
+function resetData(){if(!confirm('RESET ALL DATA? Cannot be undone.'))return;if(!confirm('Final confirmation — delete everything?'))return;S=defaultState();save();showAlert('set-alert','Data reset. Start fresh.','warn');}
+
+// ════════════════════════════════════════════════════════
+// DEFAULT INVENTORY LOADER
+// ════════════════════════════════════════════════════════
+function loadDefaultInventory() {
+  const raw=[
+    ["HANGING HOLDERS DP","Accessories","PIECE",33,50,20],["STRAIGHT HOLDERS DP","Accessories","PIECE",33,50,20],["ANGLE HOLDERS DP","Accessories","PIECE",33,50,20],["CEILING ROSE COMPLETE","Accessories","PIECE",90,150,20],["MCB 10A","Circuit Protection","PIECE",150,250,10],["MCB 16A","Circuit Protection","PIECE",150,250,10],["MCB 20A","Circuit Protection","PIECE",150,250,10],["MCB 32A","Circuit Protection","PIECE",150,250,10],["MCB 6A","Circuit Protection","PIECE",150,250,10],["MCB 3A","Circuit Protection","PSC",150,250,10],["DOUBLE POLE ANDELI 63A","Circuit Protection","PIECE",250,350,10],["DOUBLE POLE ANDELI 100A","Circuit Protection","PIECE",250,350,10],["METER BOX POWDERCOATED 12X12","Circuit Protection","PIECE",1100,1500,2],["METER BOX METALLIC SMALL","Circuit Protection","PIECE",150,300,5],["METER BOX POWDERCOATED 14X14","Circuit Protection","PSC",1450,1800,2],["Meter Box Powdercoated 18x18","Circuit Protection","Psc",2200,3000,2],["TWIN CUT-OUT","Circuit Protection","PIECES",420,700,6],["SINGLE CUT-OUT","Circuit Protection","PIECES",300,500,6],["2 WAY CONSUMER Z-Y","Circuit Protection","PIECES",350,500,5],["4 WAY CONSUMER Z-Y","Circuit Protection","PIECES",600,700,5],["4 WAY CONSUMER METALLIC","Circuit Protection","PIECES",1450,1800,5],["6 WAY CONSUMER METALLIC","Circuit Protection","PIECES",2000,2500,3],["SUB METER","Circuit Protection","PSC",650,1000,2],["DING RAIL","Circuit Protection","PSC",100,150,10],["DING RAIL BAR","Circuit Protection","PSC",80,150,10],["1 GANG SWITCH BEST","Switches & Sockets","PIECES",100,120,20],["2 GANG SWITCH BEST","Switches & Sockets","PIECES",130,150,20],["3 GANG SWITCH BEST","Switches & Sockets","PIECES",190,300,20],["4 GANG SWITCH BEST","Switches & Sockets","PIECES",220,400,10],["SINGLE SOCKET BEST","Switches & Sockets","PIECES",145,200,10],["TWIN SOCKET BEST","Switches & Sockets","PIECES",290,300,10],["SINGLE SOCKET CHEAP","Switches & Sockets","PSC",100,150,20],["TWIN SOCKET CHEAP","Switches & Sockets","PSC",170,250,20],["WATER HEATER SWITCH 20A","Switches & Sockets","PIECES",280,350,10],["WATER HEATER SWITCH 45A","Switches & Sockets","PIECES",350,500,5],["COOKER SOCKET BEST","Switches & Sockets","PIECES",400,700,5],["COOKER CONNECTOR","Switches & Sockets","PIECES",250,350,5],["INTERMEDIATE SWITCH","Switches & Sockets","PIECES",150,200,5],["SWITCH BOX SINGLE","Switches & Sockets","PIECES",15,25,50],["SWITCH BOX DOUBLE","Switches & Sockets","PIECES",25,50,50],["LED DUST PROOF 2 FT","Lighting","PSC",400,500,10],["LED DUSTPROOF 4FT","Lighting","Psc",450,500,10],["LED BULKHEAD 15W-18W ROUND/OVAL","Lighting","PIECE",220,500,6],["LED BULKHEAD 20W-24W ROUND/OVAL","Lighting","PIECE",290,600,6],["BULKHEAD GLASS","Lighting","PIECE",400,700,6],["LED BULB SCREW/PIN 5W AC","Lighting","PIECES",40,100,20],["LED BULB SCREW/PIN 7W AC","Lighting","PIECES",50,100,20],["LED BULB AC 9W PIN/SCREW","Lighting","PIECES",70,100,20],["LED BULB AC 20W","Lighting","PIECES",220,250,3],["LED BULB AC 25W","Lighting","PIECES",200,300,3],["LED BULB 30W","Lighting","PSC",220,350,3],["LED BULB 40W","Lighting","PSC",270,400,3],["RECHARGABLE BULB 30W","Lighting","PIECES",300,500,3],["RECHARGABLE BULB 20W","Lighting","PIECES",200,350,3],["RECHARGABLE BULB 40W","Lighting","PSC",400,500,3],["RECHARGABLE LED BULB 50W","Lighting","PSC",450,550,3],["CHICKEN BULB","Lighting","PIECES",430,500,4],["LED TUBES 4 FT","Lighting","PIECES",150,250,25],["LED TUBES 2 FT","Lighting","PIECES",150,250,25],["LED FITTINGS 4 FT","Lighting","PIECES",300,450,10],["LED FITTINGS 2 FT","Lighting","PIECES",250,450,10],["ORDINARY BULBS","Lighting","PIECES",40,50,10],["INTELLIGENT BULB 20W","Lighting","PSC",350,400,3],["3W/5W DC Bulb","Lighting","PSC",55,70,10],["7W DC BULB","Lighting","PSC",55,80,20],["9W DC BULB","Lighting","PSC",65,100,20],["PHOTOCEL ZODION","Lighting","PIECES",600,800,3],["GATE LIGHT GLASS STRAIGHT","Lighting","PSC",950,1200,2],["BALL FITTING PLASTIC","Lighting","PIECES",320,500,4],["CEILING ROSE BEST","Lighting","PSC",100,150,10],["1.5 MM TWE EVIN (90M)","Cables & Conduits","METERS",5300,6300,2],["1.5 MM TWE MATSTAR (90M)","Cables & Conduits","METRES",2300,5400,2],["2.5 MM TWE MATSTAR (90M)","Cables & Conduits","METRES",4500,9000,2],["2.5 MM TWE EVIN (90M)","Cables & Conduits","METRES",10300,10800,1],["1.5 MM FLEX CABLE STD BLACK (90M)","Cables & Conduits","METRES",2300,4500,1],["20 MM CONDUIT HEAVY","Cables & Conduits","PIECES",70,90,100],["25 MM CONDUIT HEAVY","Cables & Conduits","PIECES",140,170,50],["20 MM COUPLER","Cables & Conduits","PIECES",3,5,200],["25 MM COUPLER","Cables & Conduits","PIECES",5,10,200],["20 MM PVC BEND","Cables & Conduits","PIECES",8,10,50],["25 MM PVC BEND","Cables & Conduits","PIECES",13,15,50],["CIRCULAR BOX 4-WAY 20MM","Cables & Conduits","PIECES",15,25,50],["CIRCULAR BOX 1-WAY 25MM","Cables & Conduits","PIECES",20,35,50],["20 MM SANDLE CLIPS","Cables & Conduits","PIECES",3,5,200],["MINI TRUNKING 1X1","Cables & Conduits","PIECE",72,100,40],["CIRCULAX BOX 3-WAY 20MM","Cables & Conduits","PSC",15,25,50],["CIRCULAX BOX 2-WAY 20MM","Cables & Conduits","PSC",15,25,50],["CIRCULAX BOX 2-WAY 25MM","Cables & Conduits","PSC",15,35,50],["CIRCULAX BOX 3-WAY 25MM","Cables & Conduits","PSC",20,35,50],["CIRCULAX BOX 4-WAY 25MM","Cables & Conduits","PSC",22,35,50],["BENDING SPRING 20MM","Cables & Conduits","PIECES",150,300,6],["TOWER CLIPS 8MM","Cables & Conduits","PKT",50,100,20],["TOWER CLIPS 9MM","Cables & Conduits","PKT",55,100,20],["TOWER CLIPS 10MM","Cables & Conduits","PKT",60,100,20],["TOWER CLIPS 12MM","Cables & Conduits","PKT",66,100,20],["TOWER CLIPS 14MM","Cables & Conduits","PKT",100,150,10],["ELEMENT HORIZON (Short)","Heating Elements","PIECES",120,250,3],["ELEMENT FAME 3-T","Heating Elements","PIECES",500,900,3],["ELEMENT ENERBRAS 3-T","Heating Elements","PIECES",450,900,3],["ELEMENT LOREZETTI SPRING-TYPE","Heating Elements","PIECES",450,900,3],["ELEMENT LOREZETTI BED-LIKE","Heating Elements","PIECES",450,900,3],["ELEMENT 4-T FAME","Heating Elements","PSC",450,800,3],["ELEMENT 4-T ENERBRAS","Heating Elements","PSC",450,800,3],["SHOWER FAME 3-T","Heating Elements","PIECES",1250,2500,3],["SHOWER FAME 4-T","Heating Elements","PIECES",1100,2500,3],["LOREZETTI SHOWER 2","Heating Elements","PSC",1000,1500,2],["HORIZON SHOWER 2","Heating Elements","PSC",1000,1500,2],["ENERBRAS 4-T SHOWER","Heating Elements","PSC",1800,2800,2],["BLACK HEATER","Heating Elements","PIECES",230,400,3],["RED HEATER","Heating Elements","PIECES",150,250,3],["GREEN HEATER","Heating Elements","PIECES",150,350,3],["RK EXTENSION 6-WAY","Extensions & Plugs","PIECES",260,700,4],["EXTENSION RK 4-WAY","Extensions & Plugs","PSC",200,300,6],["EXTENSION RK 5-WAY","Extensions & Plugs","PSC",250,400,6],["EXTENSION 4 WAY BEST","Extensions & Plugs","PSC",450,800,3],["EXTENSION PBS 5-WAY","Extensions & Plugs","PSC",650,900,3],["EXTENSION PBS 6-WAY","Extensions & Plugs","PSC",700,1000,3],["TOP PLUG BEST","Extensions & Plugs","PIECES",80,150,10],["TOP PLUG CHEAP","Extensions & Plugs","PIECES",35,50,10],["TRAVEL ADAPTER","Extensions & Plugs","PIECES",30,50,10],["INSULATION TAPE BIG","Fixings & Adhesives","PIECES",80,100,20],["INSULATION TAPE SMALL","Fixings & Adhesives","PKT",25,50,40],["SUPER GLUE","Fixings & Adhesives","PIECES",25,50,12],["TANGIT 500G","Fixings & Adhesives","PSC",500,850,6],["TANGIT 250G","Fixings & Adhesives","PSC",350,500,6],["TANGIT 100G","Fixings & Adhesives","PSC",250,350,6],["TANGIT 50G","Fixings & Adhesives","PSC",150,200,6],["CONTA 50ML","Fixings & Adhesives","PSC",160,200,6],["CONTA 100ML","Fixings & Adhesives","PSC",250,350,6],["CABLE TIES 250MM","Fixings & Adhesives","PIECE",250,350,10],["CABLE TIES 150MM","Fixings & Adhesives","PIECE",150,200,10],["CABLE TIES 300MM","Fixings & Adhesives","PIECE",300,450,10],["CABLE TIES 450MM","Fixings & Adhesives","PIECE",450,600,10],["CABLE TIES 500MM","Fixings & Adhesives","PKT",500,700,10],["GYPSUM SCREWS 1\"","Fixings & Adhesives","PIECES",80,120,5],["GYPSUM SCREWS 1.5\"","Fixings & Adhesives","PIECES",150,200,5],["2 BA SCREWS","Fixings & Adhesives","PIECES",200,300,5],["4 BA SCREWS","Fixings & Adhesives","PIECES",200,300,5],["GYPSUM SCREWS 2\"","Fixings & Adhesives","PIECES",300,500,5],["STEEL NAILS 1\"","Fixings & Adhesives","PIECES",190,250,3],["STEEL NAILS 1.5\"","Fixings & Adhesives","PIECES",190,250,3],["STEEL NAILS 2\"","Fixings & Adhesives","PIECES",190,250,3],["STEEL NAILS 3\"","Fixings & Adhesives","PIECES",190,250,3],["STEEL NAILS 2.5\"","Fixings & Adhesives","PIECES",190,250,3],["STEEL NAILS 4\"","Fixings & Adhesives","PIECES",190,250,3],["TESTER SMALL","Tools","PIECES",30,50,30],["TESTER BIG","Tools","PIECES",55,100,20],["PLIERS SMALL","Tools","PIECES",230,300,6],["PLIERS BIG","Tools","PIECES",280,450,6],["DRAW WIRE","Tools","PIECES",150,300,5],["SCREW DRIVER COMBINED 8\"","Tools","PIECES",100,200,6],["MULTIMETER BIG","Tools","PSC",650,800,2],["MULTIMETER SMALL","Tools","PSC",35,300,3],["EARTH ROD 8 MM","Tools","PSC",100,150,5],["EARTH ROD 14 MM","Tools","PSC",300,500,5],["ORAIMO CHARGER NORMAL","Electronics & AV","PIECES",300,550,3],["CHARGER NORMAL ANDROID CHEAP","Electronics & AV","PIECES",200,400,3],["CHARGER MOBILE NORMAL ANDROID","Electronics & AV","PIECES",170,500,3],["BACK TO BACK PHONE CABLE","Electronics & AV","PIECES",60,100,16],["FRIDGE GUARD CHEAP","Electronics & AV","PIECES",400,700,3],["TV GUARD CHEAP","Electronics & AV","PIECES",400,700,3],["AA BATTERIES TOCEBA","Electronics & AV","PAIR",12,30,10],["AAA BATTERIES TOCEBA","Electronics & AV","PAIR",12,30,10],["AAA BATTERIES EVEREADY","Electronics & AV","PAIR",60,100,10],["AA BATTERIES EVEREADY","Electronics & AV","PAIR",65,100,10],["RCA 2X1","Electronics & AV","PSC",35,100,5],["JUNCTION BOX 15A","Accessories","PSC",35,50,20],["JUNCTION BOX 20A","Accessories","PSC",80,80,20],["TWIN PATRESS","Accessories","PIECES",25,50,20],["SINGLE PATRESS DEEP","Accessories","PIECES",25,30,20],["SINGLE PATRESS SHALLOW","Accessories","PIECES",25,30,20],["SINGLE BLANKING COVER","Accessories","PIECES",13,20,20],["TWIN BLANKING COVER","Accessories","PIECES",20,40,20],["ROUND COVER 20MM BLACK","Accessories","PIECES",10,20,20],["ROUND COVER 25MM BLACK","Accessories","PIECES",15,25,20],["ROUND COVER 20MM WHITE","Accessories","PIECES",10,20,20],["ROUND COVER 25MM WHITE","Accessories","PIECES",15,25,20],["HANGING HOLDER UK","Accessories","PSC",22,40,20],["STRAIGHT HOLDER UK","Accessories","PSC",22,40,20],["ANGLE HOLDER UK","Accessories","PSC",22,40,20],["CERAMIC HOLDERS","Accessories","PIECES",70,100,10],["GALVANIZED METER BOX SMALL","Accessories","PSC",150,500,3],["9 X 9 PLASTIC BOARD","Accessories","PIECES",70,100,10]
+  ];
+  if(!confirm(`Load ${raw.length} electronics items as starting inventory? Existing inventory will be kept (no duplicates by name).`))return;
+  const existing=new Set(S.inventory.map(i=>i.name.toUpperCase()));
+  let added=0;
+  raw.forEach(([name,cat,unit,buyPrice,sellPrice,qty])=>{
+    if(!existing.has(name.toUpperCase())){S.inventory.push({id:uid(),name,category:cat,unit,buyPrice,sellPrice,qty,reorderPoint:5,notes:''});added++;}
+  });
+  save();
+  document.getElementById('inv-load-status').textContent=`✓ ${added} items loaded!`;
+  setTimeout(()=>{document.getElementById('inv-load-status').textContent='';},3000);
+  renderInventory();
+}
+
+// ════════════════════════════════════════════════════════
+// MODALS
+// ════════════════════════════════════════════════════════
+function openModal(id){document.getElementById(id).classList.add('open');document.body.style.overflow='hidden';}
+function closeModal(id){document.getElementById(id).classList.remove('open');document.body.style.overflow='';}
+document.querySelectorAll('.modal-bg').forEach(bg=>bg.addEventListener('click',e=>{if(e.target===bg)closeModal(bg.id);}));
+
+// ════════════════════════════════════════════════════════
+// UTILS
+// ════════════════════════════════════════════════════════
+function showAlert(id,msg,type='ok'){const el=document.getElementById(id);if(!el)return;el.innerHTML=`<div class="alert alert-${type}">${msg}</div>`;setTimeout(()=>{if(el)el.innerHTML='';},5000);}
+
+// ════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════
+document.getElementById('txn-date').value=today();
+onTypeChange();
+renderDashboard();
+</script>
 </body>
 </html>
