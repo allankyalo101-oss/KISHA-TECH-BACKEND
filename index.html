@@ -3,7 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="K-Tech OS">
+<meta name="application-name" content="K-Tech OS">
+<meta name="theme-color" content="#07090E">
+<meta name="description" content="K-Tech Electronics — Shop Management System">
 <title>Volta OS — K-Tech Electronics</title>
+
+<!-- PWA Manifest (inline data URI for single-file deployment) -->
+<link rel="manifest" href="data:application/json,%7B%22name%22%3A%22K-Tech%20Electronics%22%2C%22short_name%22%3A%22K-Tech%20OS%22%2C%22description%22%3A%22Electronics%20Shop%20Management%22%2C%22start_url%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%2307090E%22%2C%22theme_color%22%3A%22%2300D4FF%22%2C%22orientation%22%3A%22portrait-primary%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%253Csvg%2520xmlns%253D%2527http%253A%252F%252Fwww.w3.org%252F2000%252Fsvg%2527%2520viewBox%253D%25270%25200%2520512%2520512%2527%253E%253Crect%2520width%253D%2527512%2527%2520height%253D%2527512%2527%2520rx%253D%252780%2527%2520fill%253D%2527%252307090E%2527%252F%253E%253Ctext%2520x%253D%2527256%2527%2520y%253D%2527340%2527%2520font-size%253D%2527300%2527%2520text-anchor%253D%2527middle%2527%2520fill%253D%2527%252300D4FF%2527%253E%25E2%259A%25A1%253C%252Ftext%253E%253C%252Fsvg%253E%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%2C%22purpose%22%3A%22any%20maskable%22%7D%5D%2C%22categories%22%3A%5B%22business%22%2C%22productivity%22%5D%7D">
+
+<!-- Apple touch icon (inline SVG as data URI) -->
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='80' fill='%2307090E'/><text x='256' y='340' font-size='300' text-anchor='middle' fill='%2300D4FF'>⚡</text></svg>">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='80' fill='%2307090E'/><text x='256' y='340' font-size='300' text-anchor='middle' fill='%2300D4FF'>⚡</text></svg>">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -291,6 +305,11 @@ tbody tr:hover td{background:#0F1520}
     <button class="nav-tab" onclick="goto('settings')">Settings</button>
   </div>
   <div class="nav-actions">
+    <button id="pwa-install-btn" style="display:none" class="btn btn-cyan btn-sm" onclick="triggerInstall()">⬇ Install App</button>
+    <div id="sync-status" title="Sync status" style="display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9px;color:var(--text3)">
+      <div id="sync-dot" style="width:7px;height:7px;border-radius:50%;background:var(--text4)"></div>
+      <span id="sync-label" style="display:none">offline</span>
+    </div>
     <button class="btn btn-ghost btn-sm" onclick="exportData()">↓ Export</button>
   </div>
 </nav>
@@ -784,6 +803,22 @@ tbody tr:hover td{background:#0F1520}
   </div>
 
   <div class="set-sec">
+    <h3>Supabase — Cloud Sync</h3>
+    <div class="form-grid">
+      <div class="full"><label>Supabase Project URL</label><input type="text" id="set-sb-url" placeholder="https://xxxxxxxxxxxx.supabase.co"></div>
+      <div class="full"><label>Supabase Anon Key</label><input type="password" id="set-sb-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."></div>
+    </div>
+    <p style="font-family:var(--mono);font-size:9px;color:var(--text3);line-height:1.8;margin:10px 0">
+      Enables cloud sync across all your devices. Data is written to Supabase on every save and pulled fresh on load. Works offline — localStorage is the fallback. Keys stored only in this browser.
+    </p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-cyan" onclick="saveSupabaseKeys()">Save & Connect</button>
+      <button class="btn btn-ghost btn-sm" onclick="testSupabaseConnection()">Test Connection</button>
+    </div>
+    <div id="sb-connect-status" style="font-family:var(--mono);font-size:10px;margin-top:8px"></div>
+  </div>
+
+  <div class="set-sec">
     <h3>Groq API Key — AI Engine (Free)</h3>
     <div><label>Groq API Key</label><input type="password" id="set-apikey" placeholder="gsk_..."></div>
     <p style="font-family:var(--mono);font-size:9px;color:var(--text3);line-height:1.8;margin:10px 0">
@@ -797,6 +832,26 @@ tbody tr:hover td{background:#0F1520}
     <p style="font-size:12px;color:var(--text3);line-height:1.7;margin-bottom:14px">Click below to load your full electronics stock list (the inventory you provided) as the starting inventory. This will not overwrite your financial transactions.</p>
     <button class="btn btn-cyan" onclick="loadDefaultInventory()">⚡ Load Default Electronics Inventory</button>
     <span id="inv-load-status" style="font-family:var(--mono);font-size:10px;color:var(--green);margin-left:12px"></span>
+  </div>
+
+  <div class="set-sec">
+    <h3>Install App (PWA)</h3>
+    <div id="pwa-status-card">
+      <p style="font-size:12px;color:var(--text3);line-height:1.8;margin-bottom:12px">
+        Install Volta OS on your phone or laptop for instant access — no browser needed. Works offline. Looks and feels like a native app.
+      </p>
+      <div id="pwa-install-state">
+        <button class="btn btn-cyan" onclick="triggerInstall()" id="pwa-install-btn-settings">⬇ Install on This Device</button>
+        <p id="pwa-install-hint" style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-top:10px;line-height:1.8">
+          On Android Chrome: tap the button above, or tap the browser menu (⋮) → "Add to Home Screen".<br>
+          On iOS Safari: tap Share (□↑) → "Add to Home Screen".<br>
+          On desktop Chrome: click the install icon in the address bar.
+        </p>
+      </div>
+      <div id="pwa-installed-state" style="display:none">
+        <span style="color:var(--green);font-family:var(--mono);font-size:11px">✓ App is installed on this device.</span>
+      </div>
+    </div>
   </div>
 
   <div class="set-sec">
@@ -879,8 +934,258 @@ tbody tr:hover td{background:#0F1520}
 
 <script>
 // ════════════════════════════════════════════════════════
-// CONSTANTS
+// SUPABASE SYNC ENGINE
+// Architecture: localStorage = instant, Supabase = persistent
+// Write path:  save() → localStorage + sbPush() to Supabase
+// Read path:   app loads from localStorage, then sbPull() refreshes from Supabase
+// Offline:     all operations work on localStorage, sync queued on reconnect
 // ════════════════════════════════════════════════════════
+const SB_URL_KEY  = 'volta_sb_url_v1';
+const SB_KEY_KEY  = 'volta_sb_key_v1';
+
+function getSbUrl()  { return localStorage.getItem(SB_URL_KEY)||''; }
+function getSbKey()  { return localStorage.getItem(SB_KEY_KEY)||''; }
+function sbReady()   { return !!(getSbUrl() && getSbKey()); }
+
+// ── SYNC STATUS UI ──────────────────────────────────────
+function setSyncStatus(state) {
+  // state: 'online' | 'syncing' | 'offline' | 'error'
+  const dot   = document.getElementById('sync-dot');
+  const label = document.getElementById('sync-label');
+  if (!dot) return;
+  const map = {
+    online:  { color:'var(--green)',  text:'synced'  },
+    syncing: { color:'var(--amber)',  text:'syncing' },
+    offline: { color:'var(--text4)', text:'offline'  },
+    error:   { color:'var(--red)',    text:'sync err' },
+  };
+  const s = map[state] || map.offline;
+  dot.style.background = s.color;
+  if (label) { label.textContent = s.text; label.style.display = state !== 'online' ? 'inline' : 'none'; }
+  if (state === 'syncing') dot.style.animation = 'pulse 1s ease infinite';
+  else dot.style.animation = '';
+}
+
+// ── BASE FETCH WRAPPER ──────────────────────────────────
+async function sbFetch(path, opts = {}) {
+  const url = getSbUrl();
+  const key = getSbKey();
+  if (!url || !key) return null;
+  try {
+    const res = await fetch(`${url}/rest/v1/${path}`, {
+      ...opts,
+      headers: {
+        'apikey': key,
+        'Authorization': `Bearer ${key}`,
+        'Content-Type': 'application/json',
+        'Prefer': opts.prefer || 'return=minimal',
+        ...(opts.headers || {})
+      }
+    });
+    if (!res.ok) {
+      const err = await res.text();
+      console.error('Supabase error:', res.status, err);
+      return null;
+    }
+    const text = await res.text();
+    return text ? JSON.parse(text) : true;
+  } catch (e) {
+    console.error('Supabase fetch failed:', e.message);
+    return null;
+  }
+}
+
+// ── UPSERT HELPERS ──────────────────────────────────────
+async function sbUpsert(table, rows) {
+  if (!sbReady() || !rows?.length) return;
+  return sbFetch(table, {
+    method: 'POST',
+    prefer: 'return=minimal,resolution=merge-duplicates',
+    headers: { 'Prefer': 'return=minimal,resolution=merge-duplicates' },
+    body: JSON.stringify(rows)
+  });
+}
+
+async function sbDelete(table, id) {
+  if (!sbReady()) return;
+  return sbFetch(`${table}?id=eq.${id}`, { method: 'DELETE' });
+}
+
+async function sbSelect(table, params = '') {
+  if (!sbReady()) return null;
+  return sbFetch(`${table}?${params}`, {
+    method: 'GET',
+    headers: { 'Prefer': '' }
+  });
+}
+
+// ── MAP FUNCTIONS: JS ↔ DB column names ─────────────────
+function txnToDb(t) {
+  return { id:t.id, type:t.type, category:t.category, date:t.date,
+    amount:t.amount, description:t.description, note:t.note||null,
+    items:t.items||null, discount:t.discount||0, payment:t.payment||null, customer:t.customer||null };
+}
+function invToDb(i) {
+  return { id:i.id, name:i.name, category:i.category, unit:i.unit,
+    buy_price:i.buyPrice, sell_price:i.sellPrice, qty:i.qty,
+    reorder_point:i.reorderPoint||5, notes:i.notes||null };
+}
+function invFromDb(i) {
+  return { id:i.id, name:i.name, category:i.category, unit:i.unit,
+    buyPrice:i.buy_price, sellPrice:i.sell_price, qty:i.qty,
+    reorderPoint:i.reorder_point, notes:i.notes||'' };
+}
+function custToDb(c) {
+  return { id:c.id, name:c.name, phone:c.phone||null, location:c.location||null,
+    business:c.business||null, notes:c.notes||null, total_purchases:c.totalPurchases||0,
+    last_purchase:c.lastPurchase||null, outstanding:c.outstanding||0 };
+}
+function custFromDb(c) {
+  return { id:c.id, name:c.name, phone:c.phone||'', location:c.location||'',
+    business:c.business||'', notes:c.notes||'', totalPurchases:c.total_purchases||0,
+    lastPurchase:c.last_purchase||null, outstanding:c.outstanding||0 };
+}
+function saleToDb(s) {
+  return { id:s.id, date:s.date, items:s.items||null, total:s.total,
+    discount:s.discount||0, payment:s.payment||null, customer:s.customer||null };
+}
+function metaToDb(m) {
+  return { id:1, shop_name:m.shopName, start_date:m.startDate, capital:m.capital,
+    location:m.location, owner:m.owner||null, reorder_default:m.reorderDefault||5 };
+}
+
+// ── PUSH: local → Supabase ──────────────────────────────
+// Called after every save(). Pushes only what changed.
+let _pushQueue = [];
+let _pushTimer = null;
+
+function queuePush(type, data) {
+  _pushQueue.push({ type, data, ts: Date.now() });
+  clearTimeout(_pushTimer);
+  _pushTimer = setTimeout(flushPushQueue, 800); // debounce 800ms
+}
+
+async function flushPushQueue() {
+  if (!sbReady() || !_pushQueue.length) return;
+  setSyncStatus('syncing');
+  const q = [..._pushQueue];
+  _pushQueue = [];
+  try {
+    for (const item of q) {
+      if (item.type === 'transaction') await sbUpsert('transactions', [txnToDb(item.data)]);
+      if (item.type === 'inventory')   await sbUpsert('inventory',    [invToDb(item.data)]);
+      if (item.type === 'customer')    await sbUpsert('customers',    [custToDb(item.data)]);
+      if (item.type === 'sale')        await sbUpsert('sales',        [saleToDb(item.data)]);
+      if (item.type === 'meta')        await sbUpsert('shop_meta',    [metaToDb(item.data)]);
+      if (item.type === 'del_txn')     await sbDelete('transactions', item.data);
+      if (item.type === 'del_inv')     await sbDelete('inventory',    item.data);
+      if (item.type === 'del_cust')    await sbDelete('customers',    item.data);
+      // Full inventory batch (initial load)
+      if (item.type === 'inventory_batch') await sbUpsert('inventory', item.data.map(invToDb));
+    }
+    setSyncStatus('online');
+  } catch (e) {
+    setSyncStatus('error');
+    // Re-queue failed items
+    _pushQueue = [...q, ..._pushQueue];
+  }
+}
+
+// ── PULL: Supabase → local (on app load) ────────────────
+async function sbPull() {
+  if (!sbReady()) { setSyncStatus('offline'); return; }
+  setSyncStatus('syncing');
+  try {
+    const [txns, inv, custs, sales, meta] = await Promise.all([
+      sbSelect('transactions', 'order=date.desc'),
+      sbSelect('inventory',    'order=name.asc'),
+      sbSelect('customers',    'order=name.asc'),
+      sbSelect('sales',        'order=date.desc&limit=500'),
+      sbSelect('shop_meta',    'id=eq.1'),
+    ]);
+
+    let changed = false;
+
+    if (txns && txns.length >= 0) {
+      S.transactions = txns;
+      changed = true;
+    }
+    if (inv && inv.length >= 0) {
+      S.inventory = inv.map(invFromDb);
+      changed = true;
+    }
+    if (custs && custs.length >= 0) {
+      S.customers = custs.map(custFromDb);
+      changed = true;
+    }
+    if (sales && sales.length >= 0) {
+      S.sales = sales;
+      changed = true;
+    }
+    if (meta && meta.length > 0) {
+      const m = meta[0];
+      S.meta = {
+        shopName:      m.shop_name   || S.meta.shopName,
+        startDate:     m.start_date  || S.meta.startDate,
+        capital:       m.capital     || S.meta.capital,
+        location:      m.location    || S.meta.location,
+        owner:         m.owner       || S.meta.owner,
+        reorderDefault: m.reorder_default || S.meta.reorderDefault,
+      };
+      changed = true;
+    }
+
+    if (changed) {
+      localStorage.setItem(STORE, JSON.stringify(S));
+    }
+
+    setSyncStatus('online');
+    return true;
+  } catch (e) {
+    console.error('sbPull failed:', e.message);
+    setSyncStatus('error');
+    return false;
+  }
+}
+
+// ── SETTINGS: save Supabase credentials ─────────────────
+function saveSupabaseKeys() {
+  const url = document.getElementById('set-sb-url').value.trim().replace(/\/$/, '');
+  const key = document.getElementById('set-sb-key').value.trim();
+  if (!url || !key) { showAlert('set-alert', 'Both Supabase URL and Anon Key are required.', 'err'); return; }
+  if (!url.includes('supabase.co')) { showAlert('set-alert', 'URL should be your supabase.co project URL.', 'warn'); return; }
+  localStorage.setItem(SB_URL_KEY, url);
+  localStorage.setItem(SB_KEY_KEY, key);
+  showAlert('set-alert', '✓ Supabase credentials saved. Testing connection...', 'ok');
+  testSupabaseConnection();
+}
+
+async function testSupabaseConnection() {
+  const statusEl = document.getElementById('sb-connect-status');
+  if (statusEl) statusEl.innerHTML = '<span style="color:var(--amber)">⟳ Testing...</span>';
+  const result = await sbSelect('shop_meta', 'id=eq.1');
+  if (result !== null) {
+    if (statusEl) statusEl.innerHTML = '<span style="color:var(--green)">✓ Connected to Supabase. Pulling latest data...</span>';
+    setSyncStatus('online');
+    await sbPull();
+    renderDashboard();
+    if (statusEl) statusEl.innerHTML = '<span style="color:var(--green)">✓ Connected and synced.</span>';
+  } else {
+    if (statusEl) statusEl.innerHTML = '<span style="color:var(--red)">✕ Connection failed. Check your URL and Anon Key.</span>';
+    setSyncStatus('error');
+  }
+}
+
+function loadSupabaseSettings() {
+  const urlEl = document.getElementById('set-sb-url');
+  const keyEl = document.getElementById('set-sb-key');
+  if (urlEl) urlEl.value = getSbUrl() || '';
+  if (keyEl) keyEl.value = getSbKey() ? '•'.repeat(32) : '';
+}
+
+// ── ONLINE/OFFLINE DETECTION ────────────────────────────
+window.addEventListener('online',  () => { flushPushQueue(); });
+window.addEventListener('offline', () => { setSyncStatus('offline'); });
 const STORE = 'volta_os_v2';
 const APIKEY_STORE = 'volta_apikey_v1';
 const INFLOW = ['sale','service','capital'];
@@ -1162,8 +1467,15 @@ function completeSale() {
   // Log transaction
   const txn={id:uid(),type:'sale',category:'General Electronics',date:today(),amount:total,description:`POS Sale: ${itemsDesc}${customer?` — Customer: ${customer}`:''}`,note:`Payment: ${payment}${disc>0?` | Discount: KSh ${fmtK(disc)}`:''}${notes?` | ${notes}`:''}`,items:[...cart],discount:disc,payment,customer};
   S.transactions.push(txn);
-  // Log sale record
   S.sales.push({id:txn.id,date:today(),items:[...cart],total,discount:disc,payment,customer});
+  save();
+  // Push transaction and all affected inventory items to Supabase
+  queuePush('transaction', txn);
+  queuePush('sale', S.sales[S.sales.length-1]);
+  cart.forEach(c => {
+    const inv = S.inventory.find(i => i.id === c.id);
+    if (inv) queuePush('inventory', inv);
+  });
   // Add/update customer
   if(customer){const existing=S.customers.find(c2=>c2.name.toLowerCase()===customer.toLowerCase()||c2.phone===customer);if(existing){existing.totalPurchases=(existing.totalPurchases||0)+total;existing.lastPurchase=today();}else{S.customers.push({id:uid(),name:customer,phone:'',totalPurchases:total,lastPurchase:today(),outstanding:payment==='Credit (Debt)'?total:0});}}
   save();
@@ -1304,6 +1616,8 @@ function saveItemModal() {
   if(editId){const idx=S.inventory.findIndex(i=>i.id===editId);if(idx>=0)S.inventory[idx]={...S.inventory[idx],...data};}
   else{S.inventory.push({id:uid(),...data});}
   save();
+  const saved = editId ? S.inventory.find(i=>i.id===editId) : S.inventory[S.inventory.length-1];
+  queuePush('inventory', saved);
   closeModal('modal-additem');
   renderInventory();
 }
@@ -1312,7 +1626,7 @@ function deleteItem(id) {
   const item=S.inventory.find(i=>i.id===id);
   if(!confirm(`Delete "${item?.name}"?`))return;
   S.inventory=S.inventory.filter(i=>i.id!==id);
-  save();renderInventory();
+  save();queuePush('del_inv',id);renderInventory();
 }
 
 function exportInventoryCSV() {
@@ -1343,7 +1657,9 @@ function addTransaction() {
   if(!amount||amount<=0){showAlert('add-alert','Please enter a valid amount.','err');return;}
   if(!desc){showAlert('add-alert','Please add a description.','err');return;}
   S.transactions.push({id:uid(),type,category:cat,date,amount,description:desc,note});
-  save();showAlert('add-alert',`✓ Logged: ${TYPE_LABEL[type]} — KSh ${fmtK(amount)}`,'ok');
+  save();
+  queuePush('transaction', S.transactions[S.transactions.length-1]);
+  showAlert('add-alert',`✓ Logged: ${TYPE_LABEL[type]} — KSh ${fmtK(amount)}`,'ok');
   document.getElementById('txn-amount').value='';document.getElementById('txn-desc').value='';
   document.getElementById('txn-note').value='';renderRecentAdd();
 }
@@ -1372,7 +1688,7 @@ function renderHistory() {
   const net=inf-out;
   document.getElementById('hist-summary').innerHTML=`<div class="card"><div class="card-title">Filtered Summary (${txns.length} transactions)</div><div class="rrow"><span>Inflows</span><span class="mono text-green">+KSh ${fmtK(inf)}</span></div><div class="rrow"><span>Outflows</span><span class="mono text-red">-KSh ${fmtK(out)}</span></div><div class="rrow total"><span>Net</span><span class="mono ${net>=0?'text-green':'text-red'}">${net>=0?'+':'-'}KSh ${fmtK(net)}</span></div></div>`;
 }
-function deleteTxn(id){if(!confirm('Delete this transaction?'))return;S.transactions=S.transactions.filter(t=>t.id!==id);save();renderHistory();}
+function deleteTxn(id){if(!confirm('Delete this transaction?'))return;S.transactions=S.transactions.filter(t=>t.id!==id);save();queuePush('del_txn',id);renderHistory();}
 function clearHistFilters(){document.getElementById('hist-q').value='';document.getElementById('hist-type').value='';document.getElementById('hist-month').value='';renderHistory();}
 
 // ════════════════════════════════════════════════════════
@@ -1471,8 +1787,11 @@ function doRestock() {
   if(newBuy) item.buyPrice=newBuy;
   if(newSell) item.sellPrice=newSell;
   // Log purchase transaction
-  S.transactions.push({id:uid(),type:'purchase',category:item.category||'Other',date:rsDate,amount:newBuy*qty,description:`Restock: ${qty}× ${item.name}${supplier?` from ${supplier}`:''}`,note:notes});
+  const restockTxn = {id:uid(),type:'purchase',category:item.category||'Other',date:rsDate,amount:newBuy*qty,description:`Restock: ${qty}× ${item.name}${supplier?` from ${supplier}`:''}`,note:notes};
+  S.transactions.push(restockTxn);
   save();
+  queuePush('inventory', item);
+  queuePush('transaction', restockTxn);
   showAlert('restock-alert',`✓ ${qty}× ${item.name} restocked. New qty: ${item.qty}`,'ok');
   clearRestockForm();renderRestock();
 }
@@ -1498,8 +1817,8 @@ function renderCustomers() {
   tbody.innerHTML=custs.map(c=>`<tr><td style="font-weight:600">${c.name}</td><td class="mono">${c.phone||'-'}</td><td class="mono text-cyan">KSh ${fmtK(c.totalPurchases||0)}</td><td>${c.lastPurchase?fmtDate(c.lastPurchase):'-'}</td><td class="mono ${c.outstanding>0?'text-red':'text-green'}">${c.outstanding>0?`KSh ${fmtK(c.outstanding)}`:'Clear'}</td><td><button class="del-btn" onclick="deleteCust('${c.id}')">✕</button></td></tr>`).join('');
 }
 function openAddCustomerModal(){['mc-name','mc-phone','mc-loc','mc-biz','mc-notes'].forEach(id=>{document.getElementById(id).value='';});openModal('modal-addcust');}
-function saveCustomer(){const name=document.getElementById('mc-name').value.trim();if(!name){alert('Name required');return;}S.customers.push({id:uid(),name,phone:document.getElementById('mc-phone').value.trim(),location:document.getElementById('mc-loc').value.trim(),business:document.getElementById('mc-biz').value.trim(),notes:document.getElementById('mc-notes').value.trim(),totalPurchases:0,lastPurchase:null,outstanding:0});save();closeModal('modal-addcust');renderCustomers();}
-function deleteCust(id){if(!confirm('Delete customer?'))return;S.customers=S.customers.filter(c=>c.id!==id);save();renderCustomers();}
+function saveCustomer(){const name=document.getElementById('mc-name').value.trim();if(!name){alert('Name required');return;}const c={id:uid(),name,phone:document.getElementById('mc-phone').value.trim(),location:document.getElementById('mc-loc').value.trim(),business:document.getElementById('mc-biz').value.trim(),notes:document.getElementById('mc-notes').value.trim(),totalPurchases:0,lastPurchase:null,outstanding:0};S.customers.push(c);save();queuePush('customer',c);closeModal('modal-addcust');renderCustomers();}
+function deleteCust(id){if(!confirm('Delete customer?'))return;S.customers=S.customers.filter(c=>c.id!==id);save();queuePush('del_cust',id);renderCustomers();}
 
 // ════════════════════════════════════════════════════════
 // GROQ AI ENGINE
@@ -1936,8 +2255,8 @@ function copyIns(){if(window._lastIns)navigator.clipboard.writeText(window._last
 // ════════════════════════════════════════════════════════
 // SETTINGS
 // ════════════════════════════════════════════════════════
-function loadSettings(){const m=S.meta;document.getElementById('set-name').value=m.shopName||'';document.getElementById('set-capital').value=m.capital||200000;document.getElementById('set-startdate').value=m.startDate||today();document.getElementById('set-location').value=m.location||'';document.getElementById('set-owner').value=m.owner||'';document.getElementById('set-reorder').value=m.reorderDefault||5;document.getElementById('set-apikey').value=getKey()?'•'.repeat(24):'';}
-function saveSettings(){S.meta={...S.meta,shopName:document.getElementById('set-name').value.trim()||'My Electronics Shop',capital:parseFloat(document.getElementById('set-capital').value)||200000,startDate:document.getElementById('set-startdate').value||today(),location:document.getElementById('set-location').value.trim(),owner:document.getElementById('set-owner').value.trim(),reorderDefault:parseInt(document.getElementById('set-reorder').value)||5};save();document.getElementById('navTitle').textContent=S.meta.shopName.split(' ').slice(0,2).join(' ').toUpperCase();showAlert('set-alert','✓ Settings saved.','ok');}
+function loadSettings(){const m=S.meta;document.getElementById('set-name').value=m.shopName||'';document.getElementById('set-capital').value=m.capital||200000;document.getElementById('set-startdate').value=m.startDate||today();document.getElementById('set-location').value=m.location||'';document.getElementById('set-owner').value=m.owner||'';document.getElementById('set-reorder').value=m.reorderDefault||5;document.getElementById('set-apikey').value=getKey()?'•'.repeat(24):'';loadSupabaseSettings();}
+function saveSettings(){S.meta={...S.meta,shopName:document.getElementById('set-name').value.trim()||'My Electronics Shop',capital:parseFloat(document.getElementById('set-capital').value)||200000,startDate:document.getElementById('set-startdate').value||today(),location:document.getElementById('set-location').value.trim(),owner:document.getElementById('set-owner').value.trim(),reorderDefault:parseInt(document.getElementById('set-reorder').value)||5};save();queuePush('meta',S.meta);document.getElementById('navTitle').textContent=S.meta.shopName.split(' ').slice(0,2).join(' ').toUpperCase();showAlert('set-alert','✓ Settings saved.','ok');}
 function saveApiKey(){const k=document.getElementById('set-apikey').value.trim();if(k&&!k.startsWith('•')){localStorage.setItem(APIKEY_STORE,k);showAlert('set-alert','✓ API key saved. AI features unlocked.','ok');}else{showAlert('set-alert','Please paste a valid API key.','warn');}}
 function exportData(){const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`volta-backup-${today()}.json`;a.click();}
 function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const imp=JSON.parse(ev.target.result);if(!imp.transactions)throw new Error('Not a valid Volta OS backup.');if(!confirm(`Import ${imp.transactions.length} transactions + ${(imp.inventory||[]).length} inventory items?`))return;S={...defaultState(),...imp};save();showAlert('set-alert',`✓ Imported ${S.transactions.length} transactions, ${S.inventory.length} items.`,'ok');}catch(err){showAlert('set-alert','Import failed: '+err.message,'err');}};r.readAsText(f);}
@@ -1957,6 +2276,7 @@ function loadDefaultInventory() {
     if(!existing.has(name.toUpperCase())){S.inventory.push({id:uid(),name,category:cat,unit,buyPrice,sellPrice,qty,reorderPoint:5,notes:''});added++;}
   });
   save();
+  queuePush('inventory_batch', S.inventory);
   document.getElementById('inv-load-status').textContent=`✓ ${added} items loaded!`;
   setTimeout(()=>{document.getElementById('inv-load-status').textContent='';},3000);
   renderInventory();
@@ -1979,7 +2299,132 @@ function showAlert(id,msg,type='ok'){const el=document.getElementById(id);if(!el
 // ════════════════════════════════════════════════════════
 document.getElementById('txn-date').value=today();
 onTypeChange();
+
+// Start from localStorage immediately (instant render)
 renderDashboard();
+
+// Then pull from Supabase in background and refresh
+if (sbReady()) {
+  sbPull().then(ok => {
+    if (ok) renderDashboard();
+  });
+} else {
+  setSyncStatus('offline');
+}
+
+// ════════════════════════════════════════════════════════
+// PWA — SERVICE WORKER + INSTALL PROMPT
+// Cache-first for app shell, network-first for Supabase/Groq
+// SW injected as blob URL so it works from a local file too
+// ════════════════════════════════════════════════════════
+const SW_CODE = `
+const CACHE = 'ktech-v1';
+
+self.addEventListener('install', e => {
+  e.waitUntil(
+    caches.open(CACHE)
+      .then(c => c.add(self.location.href))
+      .then(() => self.skipWaiting())
+  );
+});
+
+self.addEventListener('activate', e => {
+  e.waitUntil(
+    caches.keys()
+      .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
+      .then(() => self.clients.claim())
+  );
+});
+
+self.addEventListener('fetch', e => {
+  const url = e.request.url;
+  // Always network for external APIs
+  if (url.includes('supabase.co') || url.includes('groq.com') ||
+      url.includes('googleapis.com') || url.includes('cdnjs.cloudflare.com')) {
+    e.respondWith(
+      fetch(e.request).catch(() => new Response(JSON.stringify({error:'offline'}),
+        {status:503,headers:{'Content-Type':'application/json'}}))
+    );
+    return;
+  }
+  // Cache-first for app shell
+  e.respondWith(
+    caches.match(e.request).then(cached => {
+      if (cached) return cached;
+      return fetch(e.request).then(res => {
+        if (res && res.status === 200 && e.request.method === 'GET') {
+          caches.open(CACHE).then(c => c.put(e.request, res.clone()));
+        }
+        return res;
+      }).catch(() => cached);
+    })
+  );
+});
+`;
+
+let _deferredInstall = null;
+
+function registerPWA() {
+  if (!('serviceWorker' in navigator)) return;
+  try {
+    const blob = new Blob([SW_CODE], { type: 'application/javascript' });
+    const swUrl = URL.createObjectURL(blob);
+    navigator.serviceWorker.register(swUrl, { scope: './' })
+      .then(reg => {
+        console.log('✓ SW registered');
+        setInterval(() => reg.update(), 60 * 60 * 1000);
+      })
+      .catch(e => console.log('SW skipped:', e.message));
+  } catch(e) {
+    console.log('SW blob skipped:', e.message);
+  }
+
+  // Chrome/Android: catch install prompt
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    _deferredInstall = e;
+    const btn = document.getElementById('pwa-install-btn');
+    if (btn) btn.style.display = 'flex';
+  });
+
+  // Fires when user accepts install
+  window.addEventListener('appinstalled', () => {
+    _deferredInstall = null;
+    const btn = document.getElementById('pwa-install-btn');
+    if (btn) btn.style.display = 'none';
+    const ins = document.getElementById('pwa-installed-state');
+    const unins = document.getElementById('pwa-install-state');
+    if (ins) ins.style.display = 'block';
+    if (unins) unins.style.display = 'none';
+  });
+
+  // Already running as installed PWA?
+  if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+    const ins = document.getElementById('pwa-installed-state');
+    const unins = document.getElementById('pwa-install-state');
+    if (ins) ins.style.display = 'block';
+    if (unins) unins.style.display = 'none';
+  }
+}
+
+async function triggerInstall() {
+  if (_deferredInstall) {
+    _deferredInstall.prompt();
+    const { outcome } = await _deferredInstall.userChoice;
+    if (outcome === 'accepted') {
+      _deferredInstall = null;
+      const btn = document.getElementById('pwa-install-btn');
+      if (btn) btn.style.display = 'none';
+    }
+  } else {
+    showAlert('set-alert',
+      'On Android: tap browser menu (⋮) → "Add to Home Screen". On iOS: tap Share (□↑) → "Add to Home Screen". On desktop: look for install icon in address bar.',
+      'info'
+    );
+  }
+}
+
+registerPWA();
 </script>
 </body>
 </html>
