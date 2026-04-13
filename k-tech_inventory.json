@@ -1,0 +1,82 @@
+[
+  {
+    "item": "HANGING HOLDERS BEST",
+    "buying_price": 0,
+    "selling_price": 70,
+    "quantity": 0,
+    "amount": null,
+    "unit": "PIECE"
+  },
+  {
+    "item": "HANGING HOLDERS DP",
+    "buying_price": 33,
+    "selling_price": 50,
+    "quantity": 20,
+    "amount": 660.00,
+    "unit": "PIECE"
+  },
+  {
+    "item": "STRAIGHT HOLDERS DP",
+    "buying_price": 33,
+    "selling_price": 50,
+    "quantity": 20,
+    "amount": 660.00,
+    "unit": "PIECE"
+  },
+  {
+    "item": "ANGLE HOLDERS DP",
+    "buying_price": 33,
+    "selling_price": 50,
+    "quantity": 20,
+    "amount": 660.00,
+    "unit": "PIECE"
+  },
+  {
+    "item": "CEILING ROSE COMPLETE",
+    "buying_price": 90,
+    "selling_price": 150,
+    "quantity": 20,
+    "amount": 1800.00,
+    "unit": "PIECE"
+  },
+  {
+    "item": "MCB 10A",
+    "buying_price": 150,
+    "selling_price": 250,
+    "quantity": 10,
+    "amount": 1500.00,
+    "unit": "PIECE"
+  },
+  {
+    "item": "MCB 16A",
+    "buying_price": 150,
+    "selling_price": 250,
+    "quantity": 10,
+    "amount": 1500.00,
+    "unit": "PIECE"
+  },
+  {
+    "item": "MCB 20A",
+    "buying_price": 150,
+    "selling_price": 250,
+    "quantity": 10,
+    "amount": 1500.00,
+    "unit": "PIECE"
+  },
+  {
+    "item": "MCB 32A",
+    "buying_price": 150,
+    "selling_price": 250,
+    "quantity": 10,
+    "amount": 1500.00,
+    "unit": "PIECE"
+  },
+  {
+    "item": "MCB 6A",
+    "buying_price": 150,
+    "selling_price": 250,
+    "quantity": 10,
+    "amount": 1500.00,
+    "unit": "PIECE"
+  }
+]
