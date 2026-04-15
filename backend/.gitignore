@@ -1,7 +1,0 @@
-.env
-/package-lock.json
-/package.json
-/README.md
-/src/
-/tsconfig.json
-/vite.config.ts
