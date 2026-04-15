@@ -6,3 +6,10 @@ src/
 supabase/
 tsconfig.json
 vite.config.ts
+/backend/.env
+/backend/package-lock.json
+/backend/package.json
+/backend/README.md
+/backend/src/
+/backend/tsconfig.json
+/backend/vite.config.ts
