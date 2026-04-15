@@ -11,7 +11,6 @@ from flask import Flask, request, jsonify
 import requests
 from flask_cors import CORS
 from supabase import create_client
-import { Analytics } from "@vercel/analytics/next"
 
 # ── APP INIT ─────────────────────────────────────────────────
 app = Flask(__name__)
