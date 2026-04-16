@@ -1828,56 +1828,74 @@ function saveCustomer(){const name=document.getElementById('mc-name').value.trim
 function deleteCust(id){if(!confirm('Delete customer?'))return;S.customers=S.customers.filter(c=>c.id!==id);save();queuePush('del_cust',id);renderCustomers();}
 
 // ════════════════════════════════════════════════════════
-// GROQ AI ENGINE
-// Two models: 70b for deep thinking, 8b for quick tasks
+// BACKEND CONFIG (FINAL HARDENED)
 // ════════════════════════════════════════════════════════
-// ── BACKEND CONFIG ───────────────────────────────────────
-// All AI calls route through the Render backend.
-// Groq API key lives server-side — never in the browser.
+
 const BACKEND_URL = 'https://kisha-tech-backend.onrender.com';
 
 function getBackendUrl() {
   return localStorage.getItem('volta_backend_url_v1') || BACKEND_URL;
 }
 
-// groq() — routes to Render /ask, sends full context + history
-// Drop-in replacement — rest of the app is unchanged.
+// ── GROQ BRIDGE (BACKEND ROUTED — HARDENED) ─────────────
 async function groq(messages, fast = false, maxTokens = 600) {
   try {
     const systemMsg   = messages.find(m => m.role === 'system');
     const nonSystem   = messages.filter(m => m.role !== 'system');
     const lastUser    = nonSystem.filter(m => m.role === 'user').pop();
-    const convHistory = nonSystem.slice(0, -1)
-      .map(m => ({ role: m.role, content: String(m.content).slice(0, 800) }));
+
+    // ── HARD LIMIT HISTORY (CRITICAL FOR 413)
+    const convHistory = nonSystem
+      .slice(-6) // 🔥 MAX 6 messages only
+      .map(m => ({
+        role: m.role,
+        content: String(m.content).slice(0, 300) // 🔥 tighter cap
+      }));
 
     const payload = {
       message: lastUser?.content || '',
-      context: systemMsg?.content || '',
+      context: (systemMsg?.content || '').slice(0, 4000), // 🔥 hard cap
       history: convHistory,
     };
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000); // ⏱️ 15s
 
     const res = await fetch(`${getBackendUrl()}/ask`, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify(payload),
+      signal:  controller.signal
     });
 
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.error || `Backend HTTP ${res.status}`);
+    clearTimeout(timeout);
+
+    let data = {};
+    try {
+      data = await res.json();
+    } catch {
+      throw new Error("Invalid JSON from backend");
     }
 
-    const data = await res.json();
-    if (data.error) throw new Error(data.error);
+    if (!res.ok) {
+      throw new Error(data.error || `Backend HTTP ${res.status}`);
+    }
+
+    if (data.error) {
+      throw new Error(data.error);
+    }
+
     return data.reply || '';
 
   } catch (e) {
     console.error('[AI] Backend call failed:', e.message);
-    return null;
+
+    // 🔥 RETURN STRUCTURED FAILURE (NOT NULL)
+    return `❌ ${e.message}`;
   }
 }
 
-// getKey() — kept so existing checks compile, always returns truthy
+// ── LEGACY COMPATIBILITY ────────────────────────────────
 function getKey() { return 'server-side'; }
 
 // ════════════════════════════════════════════════════════
@@ -2164,70 +2182,111 @@ function printEndOfDay() {
   w.document.write(html);
   w.document.close();
 }
-// ════════════════════════════════════════════════════════
-// AI — ASK (CONVERSATIONAL) [FINAL HARDENED VERSION]
-// ════════════════════════════════════════════════════════
-
-let chatHist = [];
-let askBusy = false;
-
+// ── INIT ASK (BACKEND HEALTH CHECK — HARDENED) ─────────────
 function initAsk() {
-  const nokey = document.getElementById('ask-nokey');
-  const online = document.getElementById('ask-online');
+  const offline = document.getElementById('ask-nokey');   // reuse existing node
+  const online  = document.getElementById('ask-online');
 
-  if (nokey) nokey.style.display = 'none';
+  if (offline) offline.style.display = 'none';
+  if (online)  online.style.display  = 'none';
 
-  fetch(`${getBackendUrl()}/`)
-    .then(r => r.ok ? r.json() : Promise.reject())
-    .then(() => { if (online) online.style.display = 'block'; })
-    .catch(() => { if (nokey) nokey.style.display = 'block'; });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 4000); // ⏱️ 4s timeout
+
+  fetch(`${getBackendUrl()}/health`, {
+    signal: controller.signal
+  })
+    .then(res => {
+      clearTimeout(timeout);
+      if (!res.ok) throw new Error();
+      return res.json();
+    })
+    .then(() => {
+      if (online) online.style.display = 'block';
+    })
+    .catch(() => {
+      // ⚠️ Backend unreachable OR cold start
+      if (offline) offline.style.display = 'block';
+    });
 }
 
-// ── CONTEXT BUILDER (TOKEN-CONTROLLED) ─────────────────────
+// ── CONTEXT BUILDER (TOKEN-CONTROLLED — HARDENED) ─────────────────────
 function buildCtx() {
   const s = stats(), m = S.meta;
 
-  const byType = {}, byMonth = {};
+  const byType = {}, byMonth = {}, byCategory = {};
 
   S.transactions.forEach(t => {
+    // ── TYPE AGGREGATION
     if (!byType[t.type]) byType[t.type] = { count: 0, total: 0 };
     byType[t.type].count++;
     byType[t.type].total += t.amount;
 
+    // ── MONTHLY AGGREGATION
     const mo = t.date.slice(0, 7);
-    if (!byMonth[mo]) byMonth[mo] = { revenue: 0, purchases: 0, expenses: 0 };
+    if (!byMonth[mo]) byMonth[mo] = { revenue: 0, expenses: 0 };
 
-    if (INFLOW.includes(t.type) && t.type !== 'capital') byMonth[mo].revenue += t.amount;
-    if (t.type === 'purchase') byMonth[mo].purchases += t.amount;
-    if (t.type === 'expense') byMonth[mo].expenses += t.amount;
+    if (INFLOW.includes(t.type) && t.type !== 'capital') {
+      byMonth[mo].revenue += t.amount;
+    }
+    if (t.type === 'expense' || t.type === 'purchase') {
+      byMonth[mo].expenses += t.amount;
+    }
+
+    // ── CATEGORY PERFORMANCE (NEW — HIGH VALUE SIGNAL)
+    const cat = t.category || 'Other';
+    if (!byCategory[cat]) byCategory[cat] = 0;
+    byCategory[cat] += t.amount;
   });
 
-  const invSummary = S.inventory
-    .slice(0, 80) // HARD LIMIT (critical)
+  // ── INVENTORY: PRIORITIZED SAMPLE (NOT RANDOM)
+  const sortedInventory = [...S.inventory]
+    .sort((a, b) => (a.qty - b.qty)); // low stock first (decision-critical)
+
+  const invSummary = sortedInventory
+    .slice(0, 60) // 🔥 REDUCED HARD LIMIT (prevents 413)
     .map(i => `${i.name}|q:${i.qty}|b:${i.buyPrice}|s:${i.sellPrice}|c:${i.category}`)
     .join('\n');
 
+  // ── RECENT TRANSACTIONS (REDUCED)
   const recent = [...S.transactions]
     .sort((a, b) => b.date.localeCompare(a.date))
-    .slice(0, 15) // HARD LIMIT
+    .slice(0, 10) // 🔥 REDUCED HARD LIMIT
     .map(t => `${t.date}|${t.type}|${t.category}|KSh ${t.amount}`)
     .join('\n');
 
+  // ── TOP CATEGORIES (COMPRESSED SIGNAL)
+  const topCategories = Object.entries(byCategory)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([c, v]) => `${c}: KSh ${fmtK(v)}`)
+    .join('\n');
+
   return `SHOP: ${m.shopName} | ${m.location}
+
 CAPITAL: KSh ${fmtK(m.capital)} → ${fmtK(s.capRem)}
 REVENUE: KSh ${fmtK(s.rev)} | EXP: KSh ${fmtK(s.exp)} | PROFIT: KSh ${fmtK(s.np)}
 MARGIN: ${s.margin.toFixed(1)}% | TXNS: ${S.transactions.length}
-INVENTORY: ${S.inventory.length} items | LOW: ${S.inventory.filter(i => i.qty <= i.reorderPoint).length}
+
+INVENTORY: ${S.inventory.length} items | LOW STOCK: ${S.inventory.filter(i => i.qty <= i.reorderPoint).length}
+
+TOP CATEGORIES:
+${topCategories || 'None'}
 
 BY TYPE:
-${Object.entries(byType).map(([t, v]) => `${TYPE_LABEL[t]}: ${v.count}x KSh ${fmtK(v.total)}`).join('\n')}
+${Object.entries(byType)
+  .map(([t, v]) => `${TYPE_LABEL[t]}: ${v.count}x KSh ${fmtK(v.total)}`)
+  .join('\n')}
 
 MONTHLY:
-${Object.entries(byMonth).sort().map(([m, v]) =>
-  `${m}: Rev ${fmtK(v.revenue)}, Exp ${fmtK(v.expenses)}, Net ${fmtK(v.revenue - v.expenses)}`
-).join('\n')}
+${Object.entries(byMonth)
+  .sort()
+  .slice(-6) // 🔥 LAST 6 MONTHS ONLY
+  .map(([m, v]) =>
+    `${m}: Rev ${fmtK(v.revenue)}, Exp ${fmtK(v.expenses)}, Net ${fmtK(v.revenue - v.expenses)}`
+  ).join('\n')}
 
-INVENTORY SAMPLE:
+INVENTORY SAMPLE (LOW STOCK PRIORITY):
 ${invSummary || 'None'}
 
 RECENT:
@@ -2275,7 +2334,7 @@ function updateMsg(id, content) {
   if (b) b.innerHTML = fmtAI(content);
 }
 
-// ── CORE ASK LOGIC (BACKEND ONLY) ──────────────────────────
+// ── CORE ASK LOGIC (BACKEND ONLY — HARDENED) ──────────────────────────
 async function doAsk() {
   if (askBusy) return;
 
@@ -2292,10 +2351,11 @@ async function doAsk() {
   renderMsg('user', q);
   chatHist.push({ role: 'user', content: q });
 
-  const ctx = buildCtx();
+  let ctx = buildCtx();
   const thinkId = renderMsg('ai', '', true);
 
-  try {
+  // ── SAFE REQUEST FUNCTION ─────────────────────────────
+  async function callBackend(contextPayload) {
     const res = await fetch("https://kisha-tech-backend.onrender.com/ask", {
       method: "POST",
       headers: {
@@ -2303,17 +2363,47 @@ async function doAsk() {
       },
       body: JSON.stringify({
         message: q,
-        context: ctx
+        context: contextPayload
       })
     });
 
-    const data = await res.json();
-
-    if (!res.ok) {
-      throw new Error(data.error || "Backend error");
+    let data = {};
+    try {
+      data = await res.json();
+    } catch {
+      throw new Error("Invalid JSON response from server");
     }
 
-    const ans = data.reply;
+    if (!res.ok) {
+      throw new Error(data.error || `HTTP ${res.status}`);
+    }
+
+    return data.reply;
+  }
+
+  try {
+    let ans;
+
+    try {
+      // ── FIRST ATTEMPT (FULL CONTEXT)
+      ans = await callBackend(ctx);
+
+    } catch (err) {
+      // ── 413 FALLBACK (CRITICAL FIX)
+      if (err.message.includes("413")) {
+        console.warn("⚠️ Context too large → retrying with compressed context");
+
+        const compressedCtx = ctx
+          .split('\n')
+          .slice(0, 120)   // HARD CUT (aggressive fallback)
+          .join('\n');
+
+        ans = await callBackend(compressedCtx);
+
+      } else {
+        throw err;
+      }
+    }
 
     if (!ans) {
       throw new Error("Empty response from backend");
@@ -2327,7 +2417,20 @@ async function doAsk() {
     }
 
   } catch (e) {
-    updateMsg(thinkId, `❌ ${e.message}`);
+    console.error("ASK ERROR:", e);
+
+    // ── CLEAN ERROR MESSAGES (NO MORE GROQ CONFUSION)
+    let msg = e.message;
+
+    if (msg.includes("Failed to fetch")) {
+      msg = "Backend not reachable";
+    } else if (msg.includes("timeout")) {
+      msg = "Request timed out";
+    } else if (msg.includes("413")) {
+      msg = "Data too large even after compression";
+    }
+
+    updateMsg(thinkId, `❌ ${msg}`);
     chatHist.pop();
   }
 
