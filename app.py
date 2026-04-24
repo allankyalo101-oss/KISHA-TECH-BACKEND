@@ -3,17 +3,13 @@ app.py — Kisha-Tech Electronics AI Backend
 Hosted on Render at: kisha-tech-backend.onrender.com
 
 Endpoints:
-    POST /ask         — AI query from Volta OS admin frontend
-    GET  /health      — strict uptime check (used by frontend / Render)
-    GET  /health/full — detailed diagnostics (for debugging only)
-
-Architecture:
-    - Groq key lives server-side — never exposed to browser
-    - Receives: { message, context, history }
-    - Returns:  { reply }
+    POST /ask         — AI query from frontend
+    GET  /health      — strict uptime check
+    GET  /health/full — detailed diagnostics (debug only)
 """
 
 import os
+import time
 import logging
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -61,7 +57,7 @@ def log_request():
     logger.info(
         f"{request.method} {request.path} | "
         f"IP={request.remote_addr} | "
-        f"UA={request.headers.get('User-Agent', '')[:40]}"
+        f"UA={request.headers.get('User-Agent', '')[:60]}"
     )
 
 # ── Groq Client ───────────────────────────────────────────────────────────────
@@ -80,7 +76,13 @@ Never make up inventory items or prices — only use provided context."""
 # ── /ask ──────────────────────────────────────────────────────────────────────
 @app.route("/ask", methods=["POST"])
 def ask():
+    start_time = time.time()
+
     try:
+        if not request.is_json:
+            logger.warning("/ask invalid content-type")
+            return jsonify({"error": "Content-Type must be application/json"}), 400
+
         data = request.get_json(silent=True) or {}
 
         message = (data.get("message") or "").strip()
@@ -91,16 +93,15 @@ def ask():
             logger.warning("/ask missing message")
             return jsonify({"error": "message is required"}), 400
 
-        logger.info(f"/ask | msg='{message[:50]}' | ctx={len(context)} chars")
+        logger.info(f"/ask | msg='{message[:50]}' | ctx={len(context)}")
 
-        # Build system message
+        # Build system prompt
         system_content = SYSTEM_BASE
         if context:
             system_content += f"\n\n=== SHOP DATA ===\n{context[:4000]}"
 
         messages = [{"role": "system", "content": system_content}]
 
-        # Inject history (max 10)
         for turn in history[-10:]:
             role = turn.get("role")
             content = str(turn.get("content", ""))[:600]
@@ -119,20 +120,30 @@ def ask():
 
         reply = completion.choices[0].message.content.strip()
 
-        logger.info(f"/ask reply: {reply[:80]}")
+        duration = round((time.time() - start_time) * 1000)
 
-        return jsonify({"reply": reply})
+        logger.info(f"/ask success | {duration}ms | reply='{reply[:80]}'")
+
+        return jsonify({
+            "reply": reply,
+            "latency_ms": duration
+        })
 
     except Exception as e:
-        logger.exception("/ask failure")
+        duration = round((time.time() - start_time) * 1000)
+        logger.exception(f"/ask failure | {duration}ms")
+
         return jsonify({
-            "error": "AI service temporarily unavailable"
+            "error": "AI service temporarily unavailable",
+            "latency_ms": duration
         }), 500
 
-# ── /health (STRICT — for frontend + Render) ──────────────────────────────────
+# ── /health (STRICT — frontend + Render) ──────────────────────────────────────
 @app.route("/health", methods=["GET"])
 def health():
-    return jsonify({"status": "ok"}), 200
+    return jsonify({
+        "status": "ok"
+    }), 200
 
 # ── /health/full (DEBUG ONLY) ─────────────────────────────────────────────────
 @app.route("/health/full", methods=["GET"])
