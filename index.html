@@ -2644,15 +2644,178 @@ function copyIns(){if(window._lastIns)navigator.clipboard.writeText(window._last
 // ════════════════════════════════════════════════════════
 // SETTINGS
 // ════════════════════════════════════════════════════════
-function loadSettings(){const m=S.meta;document.getElementById('set-name').value=m.shopName||'';document.getElementById('set-capital').value=m.capital||200000;document.getElementById('set-startdate').value=m.startDate||today();document.getElementById('set-location').value=m.location||'';document.getElementById('set-owner').value=m.owner||'';document.getElementById('set-reorder').value=m.reorderDefault||5;const urlEl=document.getElementById('set-backend-url');if(urlEl)urlEl.value=localStorage.getItem('volta_backend_url_v1')||'';loadSupabaseSettings();}
-function saveSettings(){S.meta={...S.meta,shopName:document.getElementById('set-name').value.trim()||'My Electronics Shop',capital:parseFloat(document.getElementById('set-capital').value)||200000,startDate:document.getElementById('set-startdate').value||today(),location:document.getElementById('set-location').value.trim(),owner:document.getElementById('set-owner').value.trim(),reorderDefault:parseInt(document.getElementById('set-reorder').value)||5};save();queuePush('meta',S.meta);document.getElementById('navTitle').textContent=S.meta.shopName.split(' ').slice(0,2).join(' ').toUpperCase();showAlert('set-alert','✓ Settings saved.','ok');}
-function saveBackendUrl(){const u=document.getElementById('set-backend-url').value.trim();if(u)localStorage.setItem('volta_backend_url_v1',u);else localStorage.removeItem('volta_backend_url_v1');showAlert('set-alert','✓ Backend URL saved.','ok');testBackend();}
-async function testBackend(){const el=document.getElementById('backend-status');if(el)el.innerHTML='<span style="color:var(--amber)">⟳ Testing...</span>';try{const r=await fetch(`${getBackendUrl()}/health`);const d=await r.json();if(r.ok&&d.status==='ok'){if(el)el.innerHTML='<span style="color:var(--green)">✓ Backend connected: '+getBackendUrl()+'</span>';}else throw new Error('Bad response');}catch(e){if(el)el.innerHTML='<span style="color:var(--red)">✕ Unreachable. Check Render deploy status.</span>';}}
-function saveApiKey(){/* key lives server-side — this is a no-op kept for compatibility */showAlert('set-alert','Groq key is managed server-side. No browser key needed.','info');}
-function exportData(){const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`volta-backup-${today()}.json`;a.click();}
-function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const imp=JSON.parse(ev.target.result);if(!imp.transactions)throw new Error('Not a valid Volta OS backup.');if(!confirm(`Import ${imp.transactions.length} transactions + ${(imp.inventory||[]).length} inventory items?`))return;S={...defaultState(),...imp};save();showAlert('set-alert',`✓ Imported ${S.transactions.length} transactions, ${S.inventory.length} items.`,'ok');}catch(err){showAlert('set-alert','Import failed: '+err.message,'err');}};r.readAsText(f);}
-function resetData(){if(!confirm('RESET ALL DATA? Cannot be undone.'))return;if(!confirm('Final confirmation — delete everything?'))return;S=defaultState();save();showAlert('set-alert','Data reset. Start fresh.','warn');}
 
+function loadSettings() {
+  const m = S.meta;
+
+  document.getElementById('set-name').value = m.shopName || '';
+  document.getElementById('set-capital').value = m.capital || 200000;
+  document.getElementById('set-startdate').value = m.startDate || today();
+  document.getElementById('set-location').value = m.location || '';
+  document.getElementById('set-owner').value = m.owner || '';
+  document.getElementById('set-reorder').value = m.reorderDefault || 5;
+
+  const urlEl = document.getElementById('set-backend-url');
+  if (urlEl) {
+    urlEl.value = localStorage.getItem('volta_backend_url_v1') || '';
+  }
+
+  if (typeof loadSupabaseSettings === "function") {
+    loadSupabaseSettings();
+  }
+}
+
+function saveSettings() {
+  S.meta = {
+    ...S.meta,
+    shopName: document.getElementById('set-name').value.trim() || 'My Electronics Shop',
+    capital: parseFloat(document.getElementById('set-capital').value) || 200000,
+    startDate: document.getElementById('set-startdate').value || today(),
+    location: document.getElementById('set-location').value.trim(),
+    owner: document.getElementById('set-owner').value.trim(),
+    reorderDefault: parseInt(document.getElementById('set-reorder').value) || 5
+  };
+
+  save();
+  queuePush('meta', S.meta);
+
+  const title = document.getElementById('navTitle');
+  if (title) {
+    title.textContent = S.meta.shopName.split(' ').slice(0, 2).join(' ').toUpperCase();
+  }
+
+  showAlert('set-alert', '✓ Settings saved.', 'ok');
+}
+
+function saveBackendUrl() {
+  const u = document.getElementById('set-backend-url')?.value.trim();
+
+  if (u) {
+    localStorage.setItem('volta_backend_url_v1', u);
+  } else {
+    localStorage.removeItem('volta_backend_url_v1');
+  }
+
+  showAlert('set-alert', '✓ Backend URL saved.', 'ok');
+  testBackend();
+}
+
+// ── FIXED HEALTH CHECK (THIS WAS YOUR MAIN FAILURE POINT) ──
+async function testBackend() {
+  const el = document.getElementById('backend-status');
+
+  if (el) {
+    el.innerHTML = '<span style="color:var(--amber)">⟳ Testing...</span>';
+  }
+
+  const url = (typeof getBackendUrl === "function")
+    ? getBackendUrl()
+    : "https://kisha-tech-backend.onrender.com";
+
+  // ⛔ HARD TIMEOUT GUARD (prevents infinite "Testing...")
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 6000);
+
+  try {
+    const r = await fetch(`${url}/health`, {
+      method: "GET",
+      signal: controller.signal
+    });
+
+    clearTimeout(timeout);
+
+    let d;
+    try {
+      d = await r.json();
+    } catch {
+      throw new Error("Invalid JSON from backend");
+    }
+
+    if (r.ok && d && d.status === "ok") {
+      if (el) {
+        el.innerHTML =
+          '<span style="color:var(--green)">✓ Backend connected: ' +
+          url +
+          '</span>';
+      }
+    } else {
+      throw new Error("Bad health response");
+    }
+
+  } catch (e) {
+    clearTimeout(timeout);
+
+    if (el) {
+      el.innerHTML =
+        '<span style="color:var(--red)">✕ Unreachable. Check Render deploy status.</span>';
+    }
+  }
+}
+
+function saveApiKey() {
+  // backend-only architecture
+  showAlert(
+    'set-alert',
+    'Groq key is managed server-side. No browser key needed.',
+    'info'
+  );
+}
+
+function exportData() {
+  const blob = new Blob([JSON.stringify(S, null, 2)], {
+    type: 'application/json'
+  });
+
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `volta-backup-${today()}.json`;
+  a.click();
+}
+
+function importData(e) {
+  const f = e.target.files[0];
+  if (!f) return;
+
+  const r = new FileReader();
+
+  r.onload = ev => {
+    try {
+      const imp = JSON.parse(ev.target.result);
+
+      if (!imp.transactions) {
+        throw new Error('Invalid backup file');
+      }
+
+      if (!confirm(
+        `Import ${imp.transactions.length} transactions + ${(imp.inventory || []).length} inventory items?`
+      )) return;
+
+      S = { ...defaultState(), ...imp };
+      save();
+
+      showAlert(
+        'set-alert',
+        `✓ Imported ${S.transactions.length} transactions, ${S.inventory.length} items.`,
+        'ok'
+      );
+
+    } catch (err) {
+      showAlert('set-alert', 'Import failed: ' + err.message, 'err');
+    }
+  };
+
+  r.readAsText(f);
+}
+
+function resetData() {
+  if (!confirm('RESET ALL DATA? Cannot be undone.')) return;
+  if (!confirm('Final confirmation — delete everything?')) return;
+
+  S = defaultState();
+  save();
+
+  showAlert('set-alert', 'Data reset. Start fresh.', 'warn');
+}
 // ════════════════════════════════════════════════════════
 // DEFAULT INVENTORY LOADER — K-Tech Full Catalogue
 // 530 items · 11 categories · April 2026
