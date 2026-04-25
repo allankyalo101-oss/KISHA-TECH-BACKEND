@@ -140,6 +140,6 @@ def root():
 # START
 # ───────────────────────────────────────────────────────
 if __name__ == "__main__":
-    port = int(os.getenv("PORT", 5000))
+    port = int(os.getenv("PORT", 5001))
     logger.info(f"Running on {port}")
     app.run(host="0.0.0.0", port=port, debug=False)

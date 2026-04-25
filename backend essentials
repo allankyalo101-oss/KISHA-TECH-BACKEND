@@ -2,3 +2,10 @@
 
 crypto.subtle.digest('SHA-256', new TextEncoder().encode('YOUR-NEW-PIN'))
   .then(b => console.log([...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')))
+
+
+
+.\venv\Scripts\Activate  
+
+
+neofetch && cmatrix -a -b -r -s
